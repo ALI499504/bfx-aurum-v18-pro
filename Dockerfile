@@ -1,6 +1,7 @@
 # ===== بناء Render — بيئة Docker =====
 # المرحلة 1: تثبيت الاعتمادات وبناء Next.js (standalone)
-FROM node:20-slim AS builder
+# node:22 لأن تبعيات الشجرة (nanoid@6 وأشباهها) تتطلب >=22
+FROM node:22-slim AS builder
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY package.json package-lock.json ./
@@ -8,11 +9,13 @@ RUN npm ci
 COPY . .
 # توليد عميل Prisma قبل البناء (schema داخل prisma/)
 RUN npx prisma generate
+# إنشاء قاعدة بيانات فارغة بمخطط كامل — الحاوية تبدأ نظيفة كل نشر
+RUN mkdir -p /app/db && DATABASE_URL="file:/app/db/custom.db" npx prisma db push --skip-generate
 # سكربت build في package.json: next build + نسخ static وpublic إلى standalone
 RUN npm run build
 
 # ===== المرحلة 2: صورة التشغيل النهائية =====
-FROM node:20-slim
+FROM node:22-slim
 WORKDIR /app
 ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 # Render يمرر PORT عبر البيئة — خادم standalone يحترمه تلقائياً
@@ -20,6 +23,7 @@ ENV PORT=3000 HOSTNAME=0.0.0.0
 # Prisma SQLite — مسار نسبي إلى مجلد db داخل الحاوية
 ENV DATABASE_URL="file:/app/db/custom.db"
 RUN mkdir -p /app/db
+COPY --from=builder /app/db/custom.db /app/db/custom.db
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
