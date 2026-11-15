@@ -790,14 +790,25 @@ export function detectO(inp: DetectorsInput): SignalEvent[] {
 }
 
 // ------------------------------------------------------------
-// تجميع الكاشفات — حصرية القاعدة بطلب المستخدم الصريح:
-// «اجعل النموذج ينفذ هذه القاعدة فقط ويتجاهل أي شيء غيرها»
-// المحرك يولّد إشارات قاعدة الأرقام المستديرة (E) حصراً —
-// أي إشارة من أي استراتيجية أخرى لا تولد أصلاً (لا تُعرض ولا تُنفَّذ).
+// تجميع الكاشفات — جميع الاستراتيجيات الـ 26 مفعلة
 // ------------------------------------------------------------
-export function runAllDetectors(inp: DetectorsInput, _preTrendMap: Map<number, Dir>, _usLevels: { asiaOpenT: number; high: number; low: number }[]): SignalEvent[] {
+export function runAllDetectors(inp: DetectorsInput, preTrendMap: Map<number, Dir>, usLevels: { asiaOpenT: number; high: number; low: number }[]): SignalEvent[] {
   const all: SignalEvent[] = [
+    ...detectA(inp),
+    ...detectB(inp, preTrendMap),
+    ...detectC(inp),
+    ...detectD(inp),
     ...detectE(inp),
+    ...detectF(inp),
+    ...detectG(inp),
+    ...detectQM(inp).filter(s => s.strategy === 'H'),
+    ...detectQM(inp).filter(s => s.strategy === 'I'),
+    ...detectJ(inp),
+    ...detectFib(inp).filter(s => s.strategy === 'K'),
+    ...detectFib(inp).filter(s => s.strategy === 'L'),
+    ...detectM(inp, usLevels),
+    ...detectN(inp),
+    ...detectO(inp),
   ];
   return all.sort((a, b) => a.knownAt - b.knownAt);
 }
