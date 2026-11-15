@@ -403,19 +403,19 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     entryPips: 0, slPips: 80, tpPips: 150, // خطة التحويل: دخول عند إعادة اختبار الخط — الوقف يبقى 80 بيب خلفه
   },
   B: {
-    enabled: true,
+    enabled: false,
     main: caseCfg(true),
     realBreakPips: 500, bodyBreakMin: 50, bodyBreakMax: 400,
     entryPips: 0, slPips: 100, tpPips: 200, // خطة التحويل: الدخول عند اختبار الخط الثاني لا قبله
   },
   C: {
-    enabled: true,
+    enabled: false,
     case1: caseCfg(true), case2: caseCfg(true),
     minLevelBreakPips: 100, internalBreakMin: 100, internalBreakMax: 500,
     fibTouch: 61.8, slFlexMaxPips: 200, forcedFibLevel: 80.0, rr: 2.0,
   },
   D: {
-    enabled: true,
+    enabled: false,
     d1: caseCfg(true), d2: caseCfg(true),
     gapMinPips: 12, gapMaxPips: 200,
     bodyBreakMin: 50, totalMin: 100, totalMax: 300, realBreakPips: 500,
@@ -436,7 +436,7 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     exec: { entryPips: 30, slPips: 50, tpPips: 100, brkEntryPips: 30, brkSlPips: 50, brkTpPips: 100, bodyBreakMin: 50, totalMin: 100, totalMax: 300 },
   },
   G: {
-    enabled: true,
+    enabled: false,
     rev: caseCfg(true), brk: caseCfg(true),
     absenceHours: 48, absencePips: 500,
     revEntryPips: 0, revSlPips: 40, revTpPips: 150, // خطة التحويل: انتظر اختبار الرقم لا مجرد اقترابه
@@ -450,13 +450,13 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     entryPips: 30, slPips: 70, tpPips: 150,
   },
   I: {
-    enabled: true,
+    enabled: false,
     main: caseCfg(true),
     waveMinPips: 200, waveMaxPips: 400, conflictPips: 100, conflictSlPips: 30,
     entryPips: 20, slPips: 30, tpPips: 100,
   },
   J: {
-    enabled: true,
+    enabled: false,
     bear: caseCfg(true), bull: caseCfg(true),
     sepCandles: 3, headBreakMin: 100, headBreakMax: 400,
     dZoneNear: 50, dZoneFar: 100,
@@ -490,24 +490,24 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     exec: { revEntryPips: 0, revSlPips: 60, revTpPips: 150, bodyBreakMin: 50, totalMin: 100, totalMax: 300, brkEntryPips: 40, brkSlPips: 40, brkTpPips: 150 }, // خطة التحويل: سحب السيولة عند اختبار المستوى مباشرة
   },
   O: {
-    enabled: true,
+    enabled: false,
     rev: caseCfg(true), brk: caseCfg(true),
     approachPips: 150,
     exec: { revEntryPips: 20, revSlPips: 40, revTpPips: 100, bodyBreakMin: 50, totalMin: 100, totalMax: 300, brkEntryPips: 40, brkSlPips: 40, brkTpPips: 150 },
   },
   P: {
-    enabled: true,
+    enabled: false,
     rev: caseCfg(true),
     approachPips: 150, entryPips: 0, slPips: 50, tpPips: 150, // خطة التحويل: حارس لا مطارد — أمر عند المستوى لا قبله
   },
   Q: {
-    enabled: true,
+    enabled: false,
     upper: caseCfg(true), lower: caseCfg(true),
     wickMinPips: 80, checkCandles: 3, isolationPips: 120, asiaOpenMinPips: 200,
     entryPips: 20, slPips: 40, tpPips: 150,
   },
   R: {
-    enabled: true,
+    enabled: false,
     r1: { enabled: true, trendFilter: true, sessions: S(), lookback: 5, minTotalPips: 100, bodyMinPct: 25, bodyMaxPct: 40, tailMaxPct: 5, slPips: 70, tpPips: 200 },
     r2: { enabled: true, trendFilter: true, sessions: S(), lookback: 5, minTotalPips: 100, bodyMinPct: 25, bodyMaxPct: 40, tailMaxPct: 5, slPips: 70, tpPips: 200 },
     tfs: { m5: true, m15: true, m30: true, h1: true },
