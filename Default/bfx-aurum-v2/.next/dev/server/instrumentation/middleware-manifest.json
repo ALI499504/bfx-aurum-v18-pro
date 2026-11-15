@@ -1,0 +1,12 @@
+{
+  "sorted_middleware": [],
+  "middleware": {},
+  "instrumentation": {
+    "files": [
+      "server/edge/chunks/Default_bfx-aurum-v2_e0fbb3ea._.js",
+      "server/edge/chunks/8e838_next_dist_esm_build_templates_edge-wrapper_6c001611.js"
+    ],
+    "name": "instrumentation"
+  },
+  "functions": {}
+}

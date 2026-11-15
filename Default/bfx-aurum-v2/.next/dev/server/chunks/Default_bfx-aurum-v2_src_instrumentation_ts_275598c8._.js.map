@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///home/kali/Default/bfx-aurum-v2/src/instrumentation.ts"],"sourcesContent":["// إقلاع الوكيل الحارس مع عملية الخادم — مراقبة وإصلاح تلقائي على مدار الساعة\n// يعمل تلقائياً عند تشغيل الخادم (dev أو production) دون أي تدخل يدوي.\nexport async function register() {\n  if (process.env.NEXT_RUNTIME === 'nodejs') {\n    try {\n      const { guardian } = await import('@/lib/monitor/guardian');\n      guardian.start();\n    } catch (e) {\n      console.error('[guardian] تعذر إقلاع الوكيل الحارس:', e);\n    }\n  }\n}\n"],"names":[],"mappings":"AAAA,6EAA6E;AAC7E,uEAAuE;;;;;AAChE,eAAe;IACpB,wCAA2C;QACzC,IAAI;YACF,MAAM,EAAE,QAAQ,EAAE,GAAG;YACrB,SAAS,KAAK;QAChB,EAAE,OAAO,GAAG;YACV,QAAQ,KAAK,CAAC,wCAAwC;QACxD;IACF;AACF"}}]
+}

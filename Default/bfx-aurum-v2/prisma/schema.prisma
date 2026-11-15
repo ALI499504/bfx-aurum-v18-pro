@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// إعدادات البوت (نافذة الجلسات + سلم الأولويات + القواعد العليا + المؤشرات)
+model BotSettings {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  json      String
+  updatedAt DateTime @updatedAt
+}
+
+// آخر نتيجة باك تيست محفوظة
+model BacktestRun {
+  id         String   @id @default(cuid())
+  runAt      DateTime @default(now())
+  tradesJson String
+  statsJson  String
+}
+
+// وضع الظل Shadow Mode — كل إشارة حية تُسجل وتُتتبع نتائجها فعلياً
+// (هل نفذت؟ ضربت الهدف أم الوقف؟) — أساس كاشف الانحراف بين الحي والباك تيست
+model LiveSignal {
+  id          String   @id @default(cuid())
+  key         String   @unique // strategy-entry-createdAt لمنع التكرار
+  createdAtMs Int
+  strategy    String
+  dir         String
+  entry       Float
+  sl          Float
+  tp          Float
+  session     String
+  reason      String
+  expiresAtMs Int
+  score       Float    @default(0)
+  status      String   @default("pending") // pending | filled | expired
+  outcome     String?  // tp | sl | time | open
+  filledAtMs  Int?
+  closedAtMs  Int?
+  pnlPips     Float?
+  checkedAtMs Int?
+}
