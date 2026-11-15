@@ -47,7 +47,7 @@ function saveHistory(entries: HistEntry[]) {
   } catch { /* الحفظ اختياري */ }
 }
 
-export async function GET(req: NextRequest) {
+export { GET, POST } from './tools/route'
   if (JARVIS_SECTION_CLOSED) return closedResponse();
   if (!isAuthed(req)) return lockedResponse(); // خدمة مقفولة — لا تاريخ بلا جلسة
   const hist = loadHistory().slice(-40).reverse();
