@@ -665,6 +665,7 @@ export const STRATEGY_CASES: Record<keyof TamsaParams, TamsaCaseKey[]> = {
   X: ['main'],
   Y: ['main'],
   AA: ['main'],
+  Z: ['main'],
 };
 
 
