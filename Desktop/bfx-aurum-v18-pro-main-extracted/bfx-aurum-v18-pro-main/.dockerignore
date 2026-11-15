@@ -1,0 +1,23 @@
+node_modules
+.next
+.git
+dev.log
+server.log
+download
+upload
+tool-results
+skills
+examples
+mini-services
+db
+!db/settings-seed.json
+Caddyfile
+SESSION-CONTEXT.md
+bun.lock
+.env
+*.zip
+*.pdf
+
+# البيانات الاحتياطية الضخمة لا تدخل صورة Docker
+mt5-feed-snapshot.json.gz
+custom.db.gz
