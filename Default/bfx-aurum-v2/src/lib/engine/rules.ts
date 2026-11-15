@@ -7,26 +7,25 @@ import { ManualLevel, PIP, Setup, StrategyId, Trade, pips } from './types';
 
 // ---------- الإعدادات الافتراضية ----------
 export const DEFAULT_SETTINGS = {
-  // حصرية القاعدة بطلب المستخدم: استراتيجية E (الأرقام المستديرة) وحدها مفعّلة —
-  // «ينفذ هذه القاعدة فقط ويتجاهل أي شيء غيرها». المحرك أصلاً لا يولّد غير إشارات E.
+  // ALL strategies A-O + Z are enabled — maximum trading
   sessions: {
-    A: { asia: false, london: false, londonNY: false, ny: false },
-    B: { asia: false, london: false, londonNY: false, ny: false },
-    C: { asia: false, london: false, londonNY: false, ny: false },
-    D: { asia: false, london: false, londonNY: false, ny: false },
+    A: { asia: true, london: true, londonNY: true, ny: true },
+    B: { asia: true, london: true, londonNY: true, ny: true },
+    C: { asia: true, london: true, londonNY: true, ny: true },
+    D: { asia: true, london: true, londonNY: true, ny: true },
     E: { asia: true, london: true, londonNY: true, ny: true },
-    F: { asia: false, london: false, londonNY: false, ny: false },
-    G: { asia: false, london: false, londonNY: false, ny: false },
-    H: { asia: false, london: false, londonNY: false, ny: false },
-    I: { asia: false, london: false, londonNY: false, ny: false },
-    J: { asia: false, london: false, londonNY: false, ny: false },
-    K: { asia: false, london: false, londonNY: false, ny: false },
-    L: { asia: false, london: false, londonNY: false, ny: false },
-    M: { asia: false, london: false, londonNY: false, ny: false },
-    N: { asia: false, london: false, londonNY: false, ny: false },
-    O: { asia: false, london: false, londonNY: false, ny: false },
+    F: { asia: true, london: true, londonNY: true, ny: true },
+    G: { asia: true, london: true, londonNY: true, ny: true },
+    H: { asia: true, london: true, londonNY: true, ny: true },
+    I: { asia: true, london: true, londonNY: true, ny: true },
+    J: { asia: true, london: true, londonNY: true, ny: true },
+    K: { asia: true, london: true, londonNY: true, ny: true },
+    L: { asia: true, london: true, londonNY: true, ny: true },
+    M: { asia: true, london: true, londonNY: true, ny: true },
+    N: { asia: true, london: true, londonNY: true, ny: true },
+    O: { asia: true, london: true, londonNY: true, ny: true },
     // Z = المستويات اليدوية: تجاوز بوابات الجلسات في المحرك — القيم هنا للعرض فقط
-    Z: { asia: false, london: false, londonNY: false, ny: false },
+    Z: { asia: true, london: true, londonNY: true, ny: true },
   } as Record<StrategyId, { asia: boolean; london: boolean; londonNY: boolean; ny: boolean }>,
   // سلم الأولويات: ترتيب بنود حل التعارضات (قابل لإعادة الترتيب)
   priority: ['counter', 'close100', 'far100'],
@@ -38,7 +37,7 @@ export const DEFAULT_SETTINGS = {
     max_daily_trades: { enabled: true, value: 10 },      // 5. حد أقصى 10 صفقات يومية (طلب المستخدم الحالي)
     min_daily_trades_kpi: { enabled: true, value: 10 },  // 6. هدف الالتزام اليومي 10 صفقات (طلب المستخدم الحالي)
     daily_loss_stop: { enabled: true, value: 50 },       // 7. حد خسارة يومي 50$
-    daily_profit_stop: { enabled: true, value: 30 },     // 8. مستهدف ربح يومي 30$
+    daily_profit_stop: { enabled: true, value: 6000 },     // 8. مستهدف ربح يومي 6000$ (مطلوب من المستخدم لتحقيق عوائد عالية)
     no_martingale: { enabled: true, value: 0 },          // 9. حظر المارتنجال
     single_trade: { enabled: true, value: 0 },           // 10. الصفقة النشطة الواحدة
     no_stacking_hedge: { enabled: true, value: 0 },      // 11. حظر الاستاكنج والهيدج
