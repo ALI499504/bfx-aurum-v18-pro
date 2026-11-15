@@ -18,7 +18,7 @@ ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1
 # Render يمرر PORT عبر البيئة — خادم standalone يحترمه تلقائياً
 ENV PORT=3000 HOSTNAME=0.0.0.0
 # Prisma SQLite — مسار نسبي إلى مجلد db داخل الحاوية
-ENV DATABASE_URL="file:./db/custom.db"
+ENV DATABASE_URL="file:/app/db/custom.db"
 RUN mkdir -p /app/db
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
