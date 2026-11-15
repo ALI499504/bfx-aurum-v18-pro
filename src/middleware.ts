@@ -68,7 +68,10 @@ export async function middleware(req: NextRequest) {
   if (pathname.startsWith('/api/')) {
     return NextResponse.json({ error: 'locked', message: 'المنصة محمية بكلمة سر' }, { status: 401 });
   }
-  // الصفحات: تحويل لبوابة الدخول مع تذكر الوجهة المطلوبة
+  // الصفحات: تحويل مطلق عبر NextResponse.redirect — nextUrl في الـmiddleware
+  // يحمل النطاق العام الصحيح على Render (مثبت حياً)، والـedge runtime يرفض
+  // ترويسة Location نسبية (Invalid URL) فلا يصح التحويل النسبي هنا.
+  // نقطة POST /api/auth/gate هي التي كانت تنتج 0.0.0.0:10000 — أصلحت بـ meta refresh.
   const url = req.nextUrl.clone();
   url.pathname = '/login';
   url.search = `?next=${encodeURIComponent(pathname + search)}`;

@@ -49,7 +49,7 @@ export function verifyGateToken(tok: string | undefined | null): boolean {
 /** التحقق من كلمة السر المُرسلة بمقارنة زمن-ثابت على بصماتها */
 export function checkPasscode(input: string | null | undefined): boolean {
   if (!input) return false;
-  const a = crypto.createHash('sha256').update(input).digest('hex');
-  const b = crypto.createHash('sha256').update(GATE_PASSCODE).digest('hex');
+  const a = crypto.createHash('sha256').update(input.trim()).digest('hex');
+  const b = crypto.createHash('sha256').update(GATE_PASSCODE.trim()).digest('hex');
   return safeEqual(a, b);
 }
