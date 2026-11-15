@@ -17,3 +17,7 @@ bun.lock
 .env
 *.zip
 *.pdf
+
+# البيانات الاحتياطية الضخمة لا تدخل صورة Docker
+mt5-feed-snapshot.json.gz
+custom.db.gz

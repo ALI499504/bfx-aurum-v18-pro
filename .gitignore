@@ -73,3 +73,7 @@ db/
 Caddyfile
 *.zip
 *.pdf
+
+# نسخة احتياطية من لقطة الشموع وحالة القاعدة
+!db/mt5-feed-snapshot.json.gz
+!db/custom.db.gz

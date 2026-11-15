@@ -47,6 +47,11 @@ export interface Mt5Scheme {
   bid: string;         // Bid line
   bidTagBg: string;    // خلفية بطاقة السعر على المحور
   bidTagText: string;
+  bidUpBg: string;     // Price Up — بطاقة السعر عند تيك صاعد (افتراضي MT5: Lime)
+  bidUpText: string;
+  bidDownBg: string;   // Price Down — بطاقة السعر عند تيك هابط (افتراضي MT5: Red)
+  bidDownText: string;
+  sep: string;         // Period separator — فواصل الأيام المنقطة
   cross: string;       // التقاطع
   crossTagBg: string;  // خلفية بطاقة التقاطع
   crossTagText: string;
@@ -70,7 +75,8 @@ export const MT5_SCHEMES: Record<Mt5SchemeId, Mt5Scheme> = {
     bull: '#00ff00', bear: '#ff0000',
     line: '#00ff00', vol: '#008000',
     bid: '#c8c8c8', bidTagBg: '#b4b4b4', bidTagText: '#000000', cross: '#7f7f7f', crossTagBg: '#6f6f6f', crossTagText: '#ffffff',
-    entry: '#4e86e0', sl: '#ff2d2d', tp: '#00e70b', struct: '#7a7a7a',
+    bidUpBg: '#00ff00', bidUpText: '#000000', bidDownBg: '#ff0000', bidDownText: '#ffffff', sep: '#3a3a3a',
+    entry: '#4e86e0', sl: '#ff2d2d', tp: '#00e70b', struct: '#7a7a3a',
     buyArrow: '#4d9feb', sellArrow: '#ff4444', emaFast: '#e2bd60', emaSlow: '#8fa7ff',
     plate: 'rgba(0,0,0,0.78)', dark: true,
   },
@@ -81,6 +87,7 @@ export const MT5_SCHEMES: Record<Mt5SchemeId, Mt5Scheme> = {
     bull: '#ffff00', bear: '#ffff00',
     line: '#ffff00', vol: '#008000',
     bid: '#c8c8c8', bidTagBg: '#b4b4b4', bidTagText: '#000000', cross: '#7f7f7f', crossTagBg: '#6f6f6f', crossTagText: '#ffffff',
+    bidUpBg: '#ffff00', bidUpText: '#000000', bidDownBg: '#ffff00', bidDownText: '#000000', sep: '#3a3a3a',
     entry: '#4e86e0', sl: '#ff2d2d', tp: '#00e70b', struct: '#7a7a7a',
     buyArrow: '#4d9feb', sellArrow: '#ff4444', emaFast: '#e2bd60', emaSlow: '#8fa7ff',
     plate: 'rgba(0,0,0,0.78)', dark: true,
@@ -92,6 +99,7 @@ export const MT5_SCHEMES: Record<Mt5SchemeId, Mt5Scheme> = {
     bull: '#ffffff', bear: '#000000',   // الجسم الصاعد = لون الخلفية → مجوّف بحدود سوداء كالميتاتريدر
     line: '#000000', vol: '#008000',
     bid: '#909090', bidTagBg: '#b4b4b4', bidTagText: '#000000', cross: '#7f7f7f', crossTagBg: '#6f6f6f', crossTagText: '#ffffff',
+    bidUpBg: '#008000', bidUpText: '#ffffff', bidDownBg: '#cc0000', bidDownText: '#ffffff', sep: '#d8d8d8',
     entry: '#0000cc', sl: '#cc0000', tp: '#008000', struct: '#909090',
     buyArrow: '#0000cc', sellArrow: '#cc0000', emaFast: '#b8860b', emaSlow: '#0000cd',
     plate: 'rgba(255,255,255,0.85)', dark: false,
@@ -103,6 +111,7 @@ export const MT5_SCHEMES: Record<Mt5SchemeId, Mt5Scheme> = {
     bull: '#ffffff', bear: '#ff0000',   // صاعد مجوّف بحدود خضراء / هابط أحمر مملوء — كالميتاتريدر
     line: '#0000ff', vol: '#008000',
     bid: '#909090', bidTagBg: '#b4b4b4', bidTagText: '#000000', cross: '#7f7f7f', crossTagBg: '#6f6f6f', crossTagText: '#ffffff',
+    bidUpBg: '#008000', bidUpText: '#ffffff', bidDownBg: '#cc0000', bidDownText: '#ffffff', sep: '#d8d8d8',
     entry: '#0000cc', sl: '#cc0000', tp: '#008000', struct: '#909090',
     buyArrow: '#0000cc', sellArrow: '#cc0000', emaFast: '#b8860b', emaSlow: '#0000cd',
     plate: 'rgba(255,255,255,0.85)', dark: false,
@@ -178,9 +187,11 @@ export function GoldChart({ candles, emaFast, emaSlow, trades, showEma, levels, 
   const rafRef = useRef(0);
   // أول زمن في الدفعة — لتعمير العرض عند تبديل الفريم فقط (لا نمس زوم المستخدم لاحقاً)
   const initKeyRef = useRef<string | null>(null);
+  const tickDirRef = useRef<'up' | 'down' | null>(null);  // اتجاه آخر تيك — لبطاقة السعر Price Up/Down كما في MT5
   const [hovered, setHovered] = useState<OhlcBox | null>(null);
   const hoveredIdxRef = useRef<number>(-1);
   const [liveLast, setLiveLast] = useState<ChartCandle | null>(null);
+  const liveLastRef = useRef<ChartCandle | null>(null);
 
   const requestDraw = () => {
     if (rafRef.current) return;
@@ -194,8 +205,12 @@ export function GoldChart({ candles, emaFast, emaSlow, trades, showEma, levels, 
     if (liveCandle) {
       const last = base[base.length - 1];
       // شمعة tick الحية بلا حقول v — نرث حجم التداول المتراكم من بيانات الشارت الحقيقية
-      if (!last || liveCandle.t > last.t) base.push({ v: 1, ...liveCandle });
-      else if (liveCandle.t === last.t) base[base.length - 1] = { v: last.v, ...liveCandle };
+      if (!last || liveCandle.t > last.t) { tickDirRef.current = last ? (liveCandle.c >= last.c ? 'up' : 'down') : null; base.push({ v: 1, ...liveCandle }); }
+      else if (liveCandle.t === last.t) {
+        const prevLive = liveLastRef.current;
+        if (prevLive && prevLive.t === liveCandle.t) tickDirRef.current = liveCandle.c >= prevLive.c ? 'up' : 'down';
+        base[base.length - 1] = { v: last.v, ...liveCandle };
+      }
     }
     // الشمعة الحية ترث حجم التداول المتراكم من الشمعة الأساسية (سطر OHLC يعرض V كالميتاتريدر)
     setLiveLast(() => {
@@ -204,6 +219,7 @@ export function GoldChart({ candles, emaFast, emaSlow, trades, showEma, levels, 
       if (liveCandle && liveCandle.t >= baseLast.t) return { v: baseLast.v, ...liveCandle };
       return baseLast;
     });
+    liveLastRef.current = liveCandle ?? (candles.length ? candles[candles.length - 1] : null);
     // تعمير أولي عند تبديل الفريم/إعادة التحميل: آخر 130 شمعة + إزاحة يمين (Chart Shift) كالميتاتريدر
     const key = candles.length ? `${candles[0].t}:${candles.length}:${tfLabel ?? ''}` : 'empty';
     if (initKeyRef.current !== key && candles.length) {
@@ -428,11 +444,31 @@ export function GoldChart({ candles, emaFast, emaSlow, trades, showEma, levels, 
     for (const tt of timeTicks) { const x = Math.round(xFor(tt.i)) + 0.5; if (x >= 0 && x <= plotW) { ctx.moveTo(x, 0); ctx.lineTo(x, plotH); } }
     ctx.stroke();
 
+    // ===== فاصل الأيام المنقط (Period Separator) — بداية كل يوم / كل شهر على الفريمات اليومية وما فوق كالميتاتريدر =====
+    ctx.strokeStyle = S.sep;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 4]);
+    ctx.beginPath();
+    let sepMonthPrev = -1;
+    for (let i = i0; i <= i1; i++) {
+      const d = data[i];
+      const dt = new Date(d.t);
+      const isDay = barDur < 86400e3 && dt.getUTCHours() === 0 && dt.getUTCMinutes() === 0;
+      const mKey = dt.getUTCFullYear() * 12 + dt.getUTCMonth();
+      const isMonth = barDur >= 86400e3 && mKey !== sepMonthPrev && i > i0;
+      sepMonthPrev = mKey;
+      if (!isDay && !isMonth) continue;
+      const x = Math.round(xFor(i)) + 0.5;
+      if (x >= 0 && x <= plotW) { ctx.moveTo(x, 0); ctx.lineTo(x, plotH); }
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+
     // ===== حجم التداول (Tick Volume) — أعمدة بلون Volumes الصلب أسفل الشارت كالميتاتريدر =====
     let vMax = 1;
     for (let i = i0; i <= i1; i++) vMax = Math.max(vMax, data[i].v ?? 1);
     const volH = plotH * 0.18;
-    const bodyW = Math.max(1, Math.round(v.spacing - Math.max(1, v.spacing * 0.3)));
+    const bodyW = Math.max(1, Math.floor(v.spacing * 0.66));  // جسم الشمعة ≈ 66% من الخلية بفجوة واضحة — نسبة MT5
     const bwOff = Math.floor(bodyW / 2);
     ctx.fillStyle = S.vol;
     for (let i = i0; i <= i1; i++) {
@@ -595,14 +631,24 @@ export function GoldChart({ candles, emaFast, emaSlow, trades, showEma, levels, 
       ctx.textAlign = 'left';
     }
 
-    // ===== بطاقة السعر الرمادية على المحور — فوق المحور تماماً كما في MT5 =====
+    // ===== بطاقة السعر على المحور — تتلون باتجاه آخر تيك: Price Up (أخضر) / Price Down (أحمر) — افتراضيات MT5 =====
     const yTag = Math.max(8, Math.min(plotH - 8, yBid));
-    ctx.fillStyle = S.bidTagBg;
+    const dir = tickDirRef.current;
+    const tagBg = dir === 'up' ? S.bidUpBg : dir === 'down' ? S.bidDownBg : S.bidTagBg;
+    const tagTx = dir === 'up' ? S.bidUpText : dir === 'down' ? S.bidDownText : S.bidTagText;
+    ctx.fillStyle = tagBg;
     ctx.fillRect(plotW, yTag - 9, AXIS_W, 18);
-    ctx.fillStyle = S.bidTagText;
+    // سهم البطاقة الصغير — مثلث يشير لليمين نحو السعر (نمط MT5)
+    ctx.beginPath();
+    ctx.moveTo(plotW + 1, yTag);
+    ctx.lineTo(plotW + 5, yTag - 4);
+    ctx.lineTo(plotW + 5, yTag + 4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = tagTx;
     ctx.font = FONT_TAG;
     ctx.textAlign = 'center';
-    ctx.fillText(bid.toFixed(dec), plotW + AXIS_W / 2, yTag + 4);
+    ctx.fillText(bid.toFixed(dec), plotW + AXIS_W / 2 + 2, yTag + 4);
     ctx.textAlign = 'left';
 
     // ===== التقاطع (Crosshair) — خطان منقّطان مع بطاقات السعر/الوقت فوق كل شيء (نمط MT5) =====
