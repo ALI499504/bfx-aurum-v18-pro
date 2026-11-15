@@ -4,7 +4,7 @@
 // كاملة (knownAt لحظة اكتمال الشروط — بلا تسلل مستقبلي).
 // الأرقام كلها من معاملات الاستراتيجية (قابلة للتعديل بالأسهم في الواجهة).
 // ============================================================
-import { Candle, Consolidation, Dir, PIP, RealPivot, SessionId, Setup, StrategyId, TF, TF_MS, pips } from './types';
+import { Candle, Consolidation, Dir, PIP, RealPivot, SessionId, Setup, StrategyId, TF, TF_MS, pips, pipsBetween } from './types';
 import { TamsaParams, CaseCfg, SessionKey, HParams, IParams, LParams, MParams, NParams, OParams, ALLOWED_SESSIONS } from './tamsa-params';
 import { findFibAnchors, fibLevel, findPivotsTF } from './structure';
 import { atr, emaSeries } from './indicators';
