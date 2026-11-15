@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>تشريح أداء استراتيجيات بوت الذهب XAUUSD</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Noto+Naskh+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@page { size: 720px 1020px; margin: 0; }
+:root{
+  --page-bg:#f6f6f5; --card-bg:#edece9; --section-bg:#ecebe8;
+  --header-fill:#766a46; --front-dark:#241f12; --front-dark2:#332b18;
+  --border:#d4d0c2; --icon:#a28d4e;
+  --accent:#8d7324;
+  --text:#191817; --muted:#7f7c75;
+  --ok:#3e8c58; --bad:#985751;
+}
+html,body{ margin:0; padding:0; width:720px; background:var(--front-dark); color:var(--text);
+  font-family:'Noto Naskh Arabic','Cairo','DejaVu Sans',sans-serif; font-size:15px; line-height:1.9;
+  overflow-wrap:break-word; }
+h1,h2,h3,h4,.head,.num{ font-family:'Cairo','Noto Naskh Arabic','DejaVu Sans',sans-serif; }
+@media screen{
+  html{ height:auto; display:flex; justify-content:center; background:#141008; }
+  body{ margin:16px auto; box-shadow:0 0 40px rgba(0,0,0,.5); }
+}
+
+/* ===== الغلاف ===== */
+.front{ width:720px; height:1020px; box-sizing:border-box; break-after:page; overflow:hidden;
+  background:linear-gradient(160deg,var(--front-dark) 0%,var(--front-dark2) 60%,var(--front-dark) 100%);
+  color:#f6f6f5; display:flex; flex-direction:column; justify-content:center; padding:64px 60px; position:relative; }
+.front .ring{ position:absolute; border-radius:50%; }
+.front .r1{ width:420px; height:420px; top:-140px; left:-120px;
+  background:radial-gradient(circle at 50% 50%, rgba(162,141,78,.10) 0%, rgba(162,141,78,.05) 55%, transparent 70%); }
+.front .r2{ width:260px; height:260px; top:-40px; left:-30px;
+  background:radial-gradient(circle at 50% 50%, rgba(162,141,78,.08) 0%, rgba(162,141,78,.04) 55%, transparent 72%); }
+.front .r3{ width:180px; height:180px; bottom:60px; right:-70px;
+  background:radial-gradient(circle at 50% 50%, rgba(162,141,78,.10) 0%, rgba(162,141,78,.04) 55%, transparent 72%); }
+.front-tag{ display:inline-block; font-family:'Cairo',sans-serif; font-weight:700; font-size:13px;
+  letter-spacing:1px; color:var(--icon); background:rgba(162,141,78,.14);
+  padding:6px 18px; border-radius:999px; margin-bottom:26px; width:fit-content; }
+.front-title{ font-family:'Cairo',sans-serif; font-weight:900; font-size:46px; line-height:1.35; margin:0 0 14px; }
+.front-title .gold{ color:var(--icon); }
+.front-sub{ font-size:16.5px; color:#c9c4b4; line-height:2; margin-bottom:38px; max-width:560px; }
+.front-grid{ display:flex; flex-wrap:wrap; gap:12px; max-width:600px; margin-bottom:40px; flex-direction:row-reverse; }
+.cg{ flex:1 1 118px; min-width:116px; max-width:100%; background:rgba(162,141,78,.12);
+  border-radius:10px; padding:13px 14px; box-sizing:border-box; }
+.cg.n{ flex:1.4 1 150px; }
+.cg .v{ font-family:'Cairo',sans-serif; font-weight:900; font-size:19px; color:#e8d9a8; direction:ltr; text-align:right; white-space:nowrap; }
+.cg .k{ font-size:12.5px; color:#a9a493; margin-top:2px; }
+.front-meta{ padding-top:18px; font-size:12.5px; color:#a9a493; line-height:2;
+  background:linear-gradient(to top, rgba(162,141,78,.16), transparent) left bottom / 100% 1px no-repeat; }
+
+/* ===== المحتوى المتدفق ===== */
+.main-content{ background:var(--page-bg); padding:52px 55px 36px; }
+.chapter-header{ break-after:avoid; break-inside:avoid; margin-top:26px; }
+.chapter-header:first-child{ margin-top:0; }
+.sec-tag{ font-family:'Cairo',sans-serif; font-weight:700; font-size:12px; color:var(--accent);
+  letter-spacing:1px; margin-bottom:4px; }
+.sec-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:25px; line-height:1.5; margin:0; }
+.divider{ width:64px; height:3px; background:var(--accent); border-radius:2px; margin:10px 0 16px; }
+.body-text{ margin:0 0 12px; text-align:justify; }
+.lead{ font-size:15.5px; }
+.callout{ background:var(--card-bg); border-right:3px solid var(--accent); border-radius:8px;
+  padding:14px 18px; margin:0 0 14px; break-inside:avoid; }
+.callout b{ font-family:'Cairo',sans-serif; }
+
+/* شرائح الأرقام */
+.stat-row{ display:flex; flex-wrap:wrap; gap:10px; margin:0 0 16px; flex-direction:row-reverse; }
+.stat{ flex:1 1 120px; min-width:120px; max-width:100%; background:#fff; border:1px solid var(--border);
+  border-radius:10px; padding:11px 13px; box-sizing:border-box; break-inside:avoid; }
+.stat.wide{ flex:1.6 1 180px; }
+.stat .v{ font-family:'Cairo',sans-serif; font-weight:900; font-size:17px; direction:ltr; text-align:right; white-space:nowrap; }
+.stat .k{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+
+/* الرسم البياني الأفقي */
+.chart{ margin:6px 0 4px; }
+.chart-title{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15px; margin:0 0 2px; }
+.chart-sub{ font-size:12px; color:var(--muted); margin-bottom:12px; }
+.brow{ display:flex; align-items:center; gap:8px; margin-bottom:5px; break-inside:avoid; }
+.blabel{ flex:0 0 190px; font-size:11.5px; line-height:1.4; color:var(--text); }
+.blabel .code{ font-family:'Cairo',sans-serif; font-weight:800; color:var(--accent); font-size:11px; }
+.btrack{ flex:1 1 auto; height:13px; background:var(--section-bg); border-radius:3px; overflow:hidden; }
+.bfill{ height:100%; border-radius:3px; }
+.bfill.w{ background:var(--ok); } .bfill.l{ background:var(--bad); }
+.bval{ flex:0 0 84px; font-family:'Cairo',sans-serif; font-weight:700; font-size:11px; direction:ltr; text-align:left; color:var(--text); }
+.legend{ display:flex; gap:22px; margin:10px 0 4px; font-size:12px; color:var(--muted); }
+.legend span::before{ content:''; display:inline-block; width:9px; height:9px; border-radius:2px; margin-left:6px; vertical-align:-1px; }
+.legend .gw::before{ background:var(--ok); } .legend .gl::before{ background:var(--bad); }
+
+/* بطاقات الاستراتيجيات */
+.card{ background:#fff; border:1px solid var(--border); border-radius:10px; padding:16px 18px 14px;
+  margin-bottom:13px; break-inside:avoid; }
+.card-top{ display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; margin-bottom:6px; }
+.rank{ font-family:'Cairo',sans-serif; font-weight:800; font-size:11px; color:var(--muted);
+  background:var(--section-bg); border-radius:6px; padding:2px 8px; }
+.code{ font-family:'Cairo',sans-serif; font-weight:900; font-size:17px; color:var(--accent); }
+.sname{ font-family:'Cairo',sans-serif; font-weight:800; font-size:15.5px; flex:1 1 auto; min-width:200px; max-width:100%; }
+.chips{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.chip{ font-family:'Cairo',sans-serif; font-weight:700; font-size:11.5px; border-radius:6px;
+  padding:2px 9px; background:var(--section-bg); color:var(--text); direction:ltr; }
+.chip.g{ background:rgba(62,140,88,.12); color:var(--ok); }
+.chip.r{ background:rgba(152,87,81,.12); color:var(--bad); }
+.q{ font-weight:700; font-family:'Cairo',sans-serif; font-size:12.5px; color:var(--accent); margin-bottom:2px; }
+.q.bad{ color:var(--bad); }
+.q.fix{ color:var(--header-fill); }
+.card p{ margin:0 0 8px; text-align:justify; }
+.card p:last-child{ margin-bottom:0; }
+.fixbox{ background:var(--card-bg); border-right:3px solid var(--ok); border-radius:6px;
+  padding:9px 14px; margin-top:8px; font-size:13.5px; }
+.fixbox .q{ margin-bottom:2px; }
+.note{ font-size:12.5px; color:var(--muted); }
+
+/* جدول خطة التحويل */
+table{ width:100%; border-collapse:collapse; font-size:12.5px; margin:0 0 14px; }
+thead{ display:table-header-group; }
+tr{ break-inside:avoid; }
+th{ font-family:'Cairo',sans-serif; font-weight:800; font-size:12px; background:var(--header-fill);
+  color:#fff; padding:7px 9px; text-align:right; }
+td{ border-bottom:1px solid var(--border); padding:6px 8px; vertical-align:top; line-height:1.65; }
+tr:nth-child(even) td{ background:var(--table-stripe); }
+
+/* قواعد عامة */
+.rule{ display:flex; gap:12px; background:#fff; border:1px solid var(--border); border-radius:10px;
+  padding:11px 14px; margin-bottom:9px; break-inside:avoid; }
+.rule .n{ flex:0 0 34px; height:34px; border-radius:8px; background:var(--header-fill); color:#fff;
+  font-family:'Cairo',sans-serif; font-weight:900; font-size:16px; display:flex; align-items:center; justify-content:center; }
+.rule .t{ flex:1 1 auto; min-width:0; }
+.rule .t b{ font-family:'Cairo',sans-serif; display:block; margin-bottom:2px; font-size:14px; }
+.rule .t span{ font-size:13.5px; }
+
+/* صفحة الختام */
+.ending{ width:720px; height:1020px; box-sizing:border-box; break-before:page; overflow:hidden;
+  background:linear-gradient(160deg,var(--front-dark) 0%,var(--front-dark2) 60%,var(--front-dark) 100%);
+  color:#f6f6f5; display:flex; flex-direction:column; justify-content:center; padding:52px 58px; position:relative; }
+.ending .ring{ position:absolute; border-radius:50%; }
+.ending .r1{ width:360px; height:360px; bottom:-120px; right:-100px;
+  background:radial-gradient(circle at 50% 50%, rgba(162,141,78,.10) 0%, rgba(162,141,78,.04) 55%, transparent 70%); }
+.ending .r2{ width:200px; height:200px; bottom:-40px; right:-20px;
+  background:radial-gradient(circle at 50% 50%, rgba(162,141,78,.07) 0%, rgba(162,141,78,.03) 55%, transparent 72%); }
+.end-title{ font-family:'Cairo',sans-serif; font-weight:900; font-size:27px; line-height:1.55; margin-bottom:14px; }
+.end-text{ color:#c9c4b4; font-size:13.5px; line-height:1.95; max-width:570px; margin-bottom:16px; }
+.end-box{ background:rgba(162,141,78,.10); border:1px solid rgba(162,141,78,.30); border-radius:10px;
+  padding:12px 16px; font-size:12px; color:#e0dbc9; line-height:1.85; max-width:570px; }
+.end-meta{ margin-top:20px; font-size:11.5px; color:#8f8a7a; padding-top:14px; line-height:1.9;
+  background:linear-gradient(to top, rgba(162,141,78,.14), transparent) left bottom / 100% 1px no-repeat; }
+</style>
+</head>
+<body>
+
+<!-- ==================== الغلاف ==================== -->
+<div class="front">
+  <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+  <div class="front-tag">تقرير تحليلي &middot; بوت تداول الذهب &middot; XAUUSD</div>
+  <h1 class="front-title">تشريح أداء <span class="gold">26 استراتيجية</span><br>لماذا نجحت؟ ولماذا خسرت؟</h1>
+  <div class="front-sub">قراءة معمّقة في نتائج المحرك الكاملة: أسباب نجاح كل استراتيجية رابحة، وأسباب خسارة كل استراتيجية خاسرة، وخطة عملية لتحويل الفشل إلى نجاح.</div>
+  <div class="front-grid">
+    <div class="cg n"><div class="v">+8,963.25</div><div class="k">الصافي الكلي بالدولار</div></div>
+    <div class="cg"><div class="v">5,550</div><div class="k">صفقة منفذة</div></div>
+    <div class="cg"><div class="v">12</div><div class="k">استراتيجية رابحة</div></div>
+    <div class="cg"><div class="v">11</div><div class="k">استراتيجية خاسرة</div></div>
+  </div>
+  <div class="front-meta">
+    نافذة الاختبار: 13 يونيو 2025 &rarr; 10 نوفمبر 2026 (نحو 17.4 شهراً) &middot; الأساس الافتراضي: 1,000 دولار &middot; اللوت: 0.01 ثابت &middot; السبريد: 30 سنتاً للصفقة<br>
+    المصدر: باك تيست المحرك الرسمي الكامل كما تظهره لوحة أداء البوت
+  </div>
+</div>
+
+<!-- ==================== المحتوى ==================== -->
+<div class="main-content">
+
+  <!-- الفصل 1 -->
+  <div class="chapter-header">
+    <div class="sec-tag">الفصل الأول</div>
+    <h2 class="sec-title">الملخص التنفيذي</h2>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text lead">خلال نافذة اختبار امتدت 17.4 شهراً على قاعدة افتراضية قدرها 1,000 دولار، نفّذ البوت 5,550 صفقة على الذهب بجميع استراتيجياته الـ26، وأنهى الفترة بصافي ربح قدره <b>8,963.25 دولاراً</b> — أي ما يعادل قرابة تسعة أضعاف الأساس. هذا الرقم ليس نتيجة استراتيجية واحدة محظوظة، بل ناتج تفاعل منظومة كاملة: 12 استراتيجية رابحة حققت مجتمعةً 9,672.08 دولاراً، مقابل 11 استراتيجية خاسرة استهلكت 708.83 دولاراً فقط. نسبة تعويض الخسائر وصلت إلى 13.65 ضعفاً، أي أن كل دولار خسرته الاستراتيجيات الخاطئة قابله الرابحون بأكثر من ثلاثة عشر دولاراً.</p>
+  <p class="body-text">نسبة الربح الإجمالية للصفقات كانت 38.4% فقط، وعامل الربح 1.43 — وهذا نمط سليم للأنظمة الاتجاهية: البوت يخسر أكثر مما يربح في عدد الصفقات، لكنه يعوّض بصفقات رابحة أكبر حجماً من خاسراته. المشكلة الحقيقية ليست في الخسائر ذاتها بل في <b>التركز</b>: الاستراتيجيات الثلاث الأولى (E وW وX) صنعت 73.7% من مجمل أرباح الرابحين، والست الأولى صنعت 96.4% منها. في المقابل، استراتيجية واحدة خاسرة (F) التهمت 53.9% من مجموع خسائر النظام كله. هذا التباين هو جوهر هذا التقرير: سنفكك كل حالة على حدة، وسنقدم خطة تحويل مبنية على بيانات المحرك نفسه.</p>
+  <div class="stat-row">
+    <div class="stat wide"><div class="v">+8,963.25</div><div class="k">دولار — الصافي على أساس 1,000</div></div>
+    <div class="stat"><div class="v">38.4%</div><div class="k">نسبة الربح الإجمالية</div></div>
+    <div class="stat"><div class="v">1.43</div><div class="k">عامل الربح PF</div></div>
+    <div class="stat"><div class="v">13.65x</div><div class="k">نسبة تعويض الخسائر</div></div>
+  </div>
+  <div class="callout"><b>منهجية القراءة:</b> جميع الأرقام في هذا التقرير مأخوذة من لوحة أداء البوت نفسها (باك تيست المحرك الرسمي الكامل)، محسوبة على أساس افتراضي 1,000 دولار بجلسات دمشق UTC+3 وسبريد ثابت 30 سنتاً للصفقة وقرار ثابت على لوت 0.01. الحساب الحقيقي (190.81 دولاراً) لم يُمسّ بإطلاقاً. حيث أضفنا تحققاً مستقلاً من خارج هذه اللوحة، أشرنا إلى ذلك صراحةً بعبارة «التحقق المستقل».</div>
+
+  <!-- الرسم البياني -->
+  <div class="chart">
+    <div class="chart-title">الأداء الصافي لكل استراتيجية (دولار)</div>
+    <div class="chart-sub">الأخضر = رابحة &middot; الأحمر = خاسرة &middot; الترتيب من الأعلى ربحاً إلى الأدنى</div>
+    <div class="legend"><span class="gw">ربح صافٍ</span><span class="gl">خسارة صافية</span></div>
+    <div class="brow"><div class="blabel"><span class="code">E</span> مناطق العرض والطلب المؤسسية</div><div class="btrack"><div class="bfill w" style="width:100%"></div></div><div class="bval">+3337.72 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">W</span> زخم 30 يوماً TSMOM</div><div class="btrack"><div class="bfill w" style="width:77.6%"></div></div><div class="bval">+2588.90 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">X</span> Sunrise Ogle بولباك ويندو</div><div class="btrack"><div class="bfill w" style="width:36.1%"></div></div><div class="bval">+1204.88 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">I</span> تبادل الأدوار 5M/15M زخم</div><div class="btrack"><div class="bfill w" style="width:28.5%"></div></div><div class="bval">+950.51 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">AA</span> قناة دونشييان 120/60</div><div class="btrack"><div class="bfill w" style="width:19.3%"></div></div><div class="bval">+645.14 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">Y</span> زخم EWMAC 32/128</div><div class="btrack"><div class="bfill w" style="width:17.9%"></div></div><div class="bval">+596.59 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">T</span> انفجار ضغط التقلب TTM</div><div class="btrack"><div class="bfill w" style="width:3.4%"></div></div><div class="bval">+113.20 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">M</span> فيبو جلسة آسيا المعدل</div><div class="btrack"><div class="bfill w" style="width:2.8%"></div></div><div class="bval">+94.20 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">K</span> الرأس والكتفين 5M/15M</div><div class="btrack"><div class="bfill w" style="width:2.1%"></div></div><div class="bval">+70.34 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">U</span> ارتداد RSI(2) مع فلتر الترند</div><div class="btrack"><div class="bfill w" style="width:1.0%"></div></div><div class="bval">+33.30 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">L</span> فيبوناتشي متعدد الفريمات</div><div class="btrack"><div class="bfill w" style="width:1.0%"></div></div><div class="bval">+32.90 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">R</span> شمعة بيبا الانعكاسية</div><div class="btrack"><div class="bfill w" style="width:0.7%"></div></div><div class="bval">+4.40 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">D</span> كسر فجوة الافتتاح اليومي</div><div class="btrack"><div class="bfill w" style="width:0.15%"></div></div><div class="bval">0.00 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">Q</span> سيولة ذيول شموع آسيا</div><div class="btrack"><div class="bfill w" style="width:0.15%"></div></div><div class="bval">0.00 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">Z</span> المستويات اليدوية (منك)</div><div class="btrack"><div class="bfill w" style="width:0.15%"></div></div><div class="bval">0.00 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">C</span> سحب سيولة عكس الترند الكبير</div><div class="btrack"><div class="bfill l" style="width:0.15%"></div></div><div class="bval">-0.30 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">O</span> ارتداد قمم وقيعان آسيا</div><div class="btrack"><div class="bfill l" style="width:0.7%"></div></div><div class="bval">-4.00 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">V</span> تلاشي الانحراف الز + بوابة الكفاءة</div><div class="btrack"><div class="bfill l" style="width:1.0%"></div></div><div class="bval">-9.00 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">J</span> الرأس والكتفين 1H/4H</div><div class="btrack"><div class="bfill l" style="width:1.2%"></div></div><div class="bval">-14.44 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">N</span> سيولة قمم وقيعان أمريكا التاريخية</div><div class="btrack"><div class="bfill l" style="width:1.3%"></div></div><div class="bval">-15.60 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">P</span> احترام صانع السوق لمستويات أمريكا</div><div class="btrack"><div class="bfill l" style="width:1.5%"></div></div><div class="bval">-18.20 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">H</span> تبادل الأدوار 1H/4H</div><div class="btrack"><div class="bfill l" style="width:2.6%"></div></div><div class="bval">-47.82 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">B</span> التلاعب والاختراق الثاني (الكاذب)</div><div class="btrack"><div class="bfill l" style="width:3.0%"></div></div><div class="bval">-54.70 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">G</span> الأرقام المئوية النفسية القوية</div><div class="btrack"><div class="bfill l" style="width:3.4%"></div></div><div class="bval">-62.53 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">A</span> كسر النطاق العرضي لشموع 4 ساعات</div><div class="btrack"><div class="bfill l" style="width:4.6%"></div></div><div class="bval">-100.28 USD</div></div>
+    <div class="brow"><div class="blabel"><span class="code">F</span> ذيول الشموع الكبرى والتاريخية</div><div class="btrack"><div class="bfill l" style="width:11.4%"></div></div><div class="bval">-381.96 USD</div></div>
+  </div>
+
+  <!-- الفصل 2 -->
+  <div class="chapter-header">
+    <div class="sec-tag">الفصل الثاني</div>
+    <h2 class="sec-title">لماذا تجمّع النجاح؟ ثلاث عائلات رابحة</h2>
+    <div class="divider"></div>
+  </div>
+  <p class="body-text">قبل الدخول في التفاصيل، يجب فهم الصورة الكبرى: النجاح في هذه اللوحة لم يتوزع عشوائياً، بل تجمع في ثلاث عائلات منطقية. الأولى هي <b>عائلة الاندفاع الاتجاهي</b> (W وY وAA وT): استراتيجيات تشتري القوة وتبيع الضعف وتتقبل نسب ربح منخفضة مقابل أهداف كبيرة — وهي الأنسب طبيعةً لسوق كان يعيش واحدة من أقوى موجات الصعود في تاريخه، إذ انتقل الذهب خلال النافذة من نطاق 3,400 دولار إلى ما فوق 4,300 دولار مع سلسلة قمم قياسية متتالية.</p>
+  <p class="body-text">الثانية هي <b>عائلة البنية المؤسسية</b> بقيادة E (مناطق العرض والطلب): آليات ترسم مستويات تماسك حقيقية ثم تتاجر إعادة اختبارها بعد الكسر — أي أنها تشتري من المؤسسات مناطق إعادة الشحن بدل مطاردة السعر. أما الثالثة فهي <b>عائلة التوقيت الجلسي والفنيات الدقيقة</b> (X وI وM وK): استراتيجيات تستغل السلوك المتكرر لجلسات محددة (هيبة آسيا الهادئة ثم اندفاع لندن) بوقف ضيق وهدف قصير، وتعتمد على تراكم هامش صغير عبر عدد كبير من الصفقات المنضبطة.</p>
+  <p class="body-text">في المقابل، تجمّع الفشل في عائلة واحدة شبه موحدة: <b>العائلة العكسية</b> — استراتيجيات تراهن على أن السعر سينعكس عند مستوى (ذيول شموع، أرقام نفسية، قمم قياسية، قلب أدوار علوي). في سوق قياسي صاعد، كل خمسة من أصل هذه الاستراتيجيات تحوّل نفس الخطأ إلى خسارة متكررة: محاولة إيقاف قطار لا يتوقف. هذه البصرة — الاتجاهيّة تربح والعكسية تخسر — هي ركيزة خطة التحويل في الفصل السادس.</p>
