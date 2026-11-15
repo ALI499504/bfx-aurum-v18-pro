@@ -1,0 +1,4024 @@
+{
+  "startT": 1749782400000,
+  "endT": 1794441600000,
+  "totalTrades": 2105,
+  "wins": 987,
+  "losses": 1118,
+  "winRate": 46.88836104513064,
+  "netPnl": 8060.45599999992,
+  "finalBalance": 9060.45599999992,
+  "baseBalance": 1000,
+  "profitFactor": 1.6262929965445954,
+  "maxDrawdown": 223.13000000000648,
+  "maxDrawdownPct": 22.313000000000645,
+  "oos": {
+    "trades": 565,
+    "winRate": 48.14159292035398,
+    "avgR": 0.3632468237161945,
+    "gatePass": true,
+    "gateEnabled": false,
+    "threshold": 70,
+    "minTrades": 100
+  },
+  "dailyKpi": {
+    "daysTraded": 339,
+    "daysWith2Plus": 339,
+    "pct": 100,
+    "excludedStopDays": 25,
+    "target": 1
+  },
+  "weekly": [
+    {
+      "weekStart": 1749427200000,
+      "net": 61.92000000000026,
+      "pct": 6.192000000000026
+    },
+    {
+      "weekStart": 1750032000000,
+      "net": 55.70999999999951,
+      "pct": 5.570999999999951
+    },
+    {
+      "weekStart": 1750636800000,
+      "net": -34.849999999999824,
+      "pct": -3.4849999999999826
+    },
+    {
+      "weekStart": 1751241600000,
+      "net": 36.19999999999974,
+      "pct": 3.619999999999974
+    },
+    {
+      "weekStart": 1751846400000,
+      "net": 176.20999999999978,
+      "pct": 17.620999999999977
+    },
+    {
+      "weekStart": 1752451200000,
+      "net": -15.750000000000103,
+      "pct": -1.5750000000000104
+    },
+    {
+      "weekStart": 1753056000000,
+      "net": 155.19999999999953,
+      "pct": 15.519999999999953
+    },
+    {
+      "weekStart": 1753660800000,
+      "net": -23.100000000000275,
+      "pct": -2.3100000000000276
+    },
+    {
+      "weekStart": 1754265600000,
+      "net": -51.689999999999486,
+      "pct": -5.168999999999949
+    },
+    {
+      "weekStart": 1754870400000,
+      "net": -22.009999999999398,
+      "pct": -2.2009999999999397
+    },
+    {
+      "weekStart": 1755475200000,
+      "net": 33.26999999999954,
+      "pct": 3.326999999999954
+    },
+    {
+      "weekStart": 1756080000000,
+      "net": -9.200000000000344,
+      "pct": -0.9200000000000343
+    },
+    {
+      "weekStart": 1756684800000,
+      "net": 229.4100000000002,
+      "pct": 22.94100000000002
+    },
+    {
+      "weekStart": 1757289600000,
+      "net": 17.28000000000019,
+      "pct": 1.728000000000019
+    },
+    {
+      "weekStart": 1757894400000,
+      "net": 31.500000000000174,
+      "pct": 3.1500000000000172
+    },
+    {
+      "weekStart": 1758499200000,
+      "net": 83.45999999999987,
+      "pct": 8.345999999999986
+    },
+    {
+      "weekStart": 1759104000000,
+      "net": 79.44599999999755,
+      "pct": 7.944599999999756
+    },
+    {
+      "weekStart": 1759708800000,
+      "net": 152.20999999999975,
+      "pct": 15.220999999999977
+    },
+    {
+      "weekStart": 1760313600000,
+      "net": 237.8299999999998,
+      "pct": 23.782999999999983
+    },
+    {
+      "weekStart": 1760918400000,
+      "net": -132.9000000000009,
+      "pct": -13.290000000000088
+    },
+    {
+      "weekStart": 1761523200000,
+      "net": 102.02999999999956,
+      "pct": 10.202999999999957
+    },
+    {
+      "weekStart": 1762128000000,
+      "net": -65.29000000000067,
+      "pct": -6.529000000000068
+    },
+    {
+      "weekStart": 1762732800000,
+      "net": 183.61999999999983,
+      "pct": 18.361999999999984
+    },
+    {
+      "weekStart": 1763337600000,
+      "net": 90.33999999999993,
+      "pct": 9.033999999999994
+    },
+    {
+      "weekStart": 1763942400000,
+      "net": 2.8400000000001597,
+      "pct": 0.28400000000001596
+    },
+    {
+      "weekStart": 1764547200000,
+      "net": -13.929999999998667,
+      "pct": -1.3929999999998668
+    },
+    {
+      "weekStart": 1765152000000,
+      "net": -46.33000000000011,
+      "pct": -4.6330000000000116
+    },
+    {
+      "weekStart": 1765756800000,
+      "net": 109.30000000000018,
+      "pct": 10.93000000000002
+    },
+    {
+      "weekStart": 1766361600000,
+      "net": 308.92000000000013,
+      "pct": 30.892000000000014
+    },
+    {
+      "weekStart": 1766966400000,
+      "net": -125.46000000000036,
+      "pct": -12.546000000000038
+    },
+    {
+      "weekStart": 1767571200000,
+      "net": 126.32000000000025,
+      "pct": 12.632000000000025
+    },
+    {
+      "weekStart": 1768176000000,
+      "net": -25.14999999999927,
+      "pct": -2.514999999999927
+    },
+    {
+      "weekStart": 1768780800000,
+      "net": 367.9,
+      "pct": 36.79
+    },
+    {
+      "weekStart": 1769385600000,
+      "net": -39.620000000000324,
+      "pct": -3.962000000000032
+    },
+    {
+      "weekStart": 1769990400000,
+      "net": 161.5299999999989,
+      "pct": 16.15299999999989
+    },
+    {
+      "weekStart": 1770595200000,
+      "net": 156.51999999999964,
+      "pct": 15.651999999999964
+    },
+    {
+      "weekStart": 1771200000000,
+      "net": 40.26000000000009,
+      "pct": 4.026000000000009
+    },
+    {
+      "weekStart": 1771804800000,
+      "net": 117.9599999999997,
+      "pct": 11.79599999999997
+    },
+    {
+      "weekStart": 1772409600000,
+      "net": 145.57999999999927,
+      "pct": 14.557999999999927
+    },
+    {
+      "weekStart": 1773014400000,
+      "net": 239.2399999999994,
+      "pct": 23.923999999999943
+    },
+    {
+      "weekStart": 1773619200000,
+      "net": 1055.8899999999996,
+      "pct": 105.58899999999996
+    },
+    {
+      "weekStart": 1774224000000,
+      "net": 243.46999999999974,
+      "pct": 24.346999999999973
+    },
+    {
+      "weekStart": 1774828800000,
+      "net": 172.5100000000008,
+      "pct": 17.251000000000076
+    },
+    {
+      "weekStart": 1775433600000,
+      "net": 79.2,
+      "pct": 7.920000000000001
+    },
+    {
+      "weekStart": 1776038400000,
+      "net": -0.9000000000003432,
+      "pct": -0.09000000000003433
+    },
+    {
+      "weekStart": 1776643200000,
+      "net": -7.640000000001059,
+      "pct": -0.7640000000001059
+    },
+    {
+      "weekStart": 1777248000000,
+      "net": 297.0199999999988,
+      "pct": 29.701999999999877
+    },
+    {
+      "weekStart": 1777852800000,
+      "net": 397.09000000000134,
+      "pct": 39.70900000000013
+    },
+    {
+      "weekStart": 1778457600000,
+      "net": 412.44000000000113,
+      "pct": 41.24400000000011
+    },
+    {
+      "weekStart": 1779062400000,
+      "net": 33.970000000000454,
+      "pct": 3.397000000000045
+    },
+    {
+      "weekStart": 1779667200000,
+      "net": -53.89000000000124,
+      "pct": -5.389000000000124
+    },
+    {
+      "weekStart": 1780272000000,
+      "net": 22.680000000000334,
+      "pct": 2.2680000000000335
+    },
+    {
+      "weekStart": 1780876800000,
+      "net": 181.48999999999916,
+      "pct": 18.148999999999916
+    },
+    {
+      "weekStart": 1781481600000,
+      "net": 105.6300000000003,
+      "pct": 10.563000000000029
+    },
+    {
+      "weekStart": 1782086400000,
+      "net": 151.64000000000019,
+      "pct": 15.16400000000002
+    },
+    {
+      "weekStart": 1782691200000,
+      "net": 121.74000000000017,
+      "pct": 12.174000000000017
+    },
+    {
+      "weekStart": 1783296000000,
+      "net": 1.9199999999992414,
+      "pct": 0.19199999999992412
+    },
+    {
+      "weekStart": 1783900800000,
+      "net": 31.239999999999664,
+      "pct": 3.1239999999999664
+    },
+    {
+      "weekStart": 1784505600000,
+      "net": 43.45999999999995,
+      "pct": 4.345999999999995
+    },
+    {
+      "weekStart": 1785110400000,
+      "net": -74.45000000000006,
+      "pct": -7.445000000000006
+    },
+    {
+      "weekStart": 1785715200000,
+      "net": 580.1800000000012,
+      "pct": 58.01800000000013
+    },
+    {
+      "weekStart": 1786320000000,
+      "net": 28.070000000000956,
+      "pct": 2.8070000000000954
+    },
+    {
+      "weekStart": 1786924800000,
+      "net": 446.3900000000006,
+      "pct": 44.63900000000006
+    },
+    {
+      "weekStart": 1787529600000,
+      "net": 147.28000000000014,
+      "pct": 14.728000000000014
+    },
+    {
+      "weekStart": 1788134400000,
+      "net": 29.080000000000314,
+      "pct": 2.9080000000000314
+    },
+    {
+      "weekStart": 1788739200000,
+      "net": 112.46000000000043,
+      "pct": 11.246000000000043
+    },
+    {
+      "weekStart": 1789344000000,
+      "net": 119.7199999999999,
+      "pct": 11.971999999999989
+    },
+    {
+      "weekStart": 1789948800000,
+      "net": -31.890000000001805,
+      "pct": -3.1890000000001804
+    },
+    {
+      "weekStart": 1790553600000,
+      "net": 177.50000000000026,
+      "pct": 17.75000000000003
+    },
+    {
+      "weekStart": 1791158400000,
+      "net": -81.31999999999952,
+      "pct": -8.131999999999952
+    },
+    {
+      "weekStart": 1791763200000,
+      "net": 49.49999999999998,
+      "pct": 4.949999999999998
+    },
+    {
+      "weekStart": 1792368000000,
+      "net": 193.3400000000001,
+      "pct": 19.33400000000001
+    },
+    {
+      "weekStart": 1792972800000,
+      "net": 110.02000000000017,
+      "pct": 11.002000000000017
+    },
+    {
+      "weekStart": 1793577600000,
+      "net": 3.159999999999684,
+      "pct": 0.3159999999999684
+    },
+    {
+      "weekStart": 1794182400000,
+      "net": 65.73000000000056,
+      "pct": 6.5730000000000555
+    }
+  ],
+  "monthly": [
+    {
+      "month": "2025-06",
+      "net": 89.18000000000004,
+      "pct": 8.918000000000003
+    },
+    {
+      "month": "2025-07",
+      "net": 336.95999999999816,
+      "pct": 33.69599999999981
+    },
+    {
+      "month": "2025-08",
+      "net": -64.22999999999965,
+      "pct": -6.4229999999999645
+    },
+    {
+      "month": "2025-09",
+      "net": 427.0159999999973,
+      "pct": 42.70159999999973
+    },
+    {
+      "month": "2025-10",
+      "net": 373.2499999999972,
+      "pct": 37.32499999999972
+    },
+    {
+      "month": "2025-11",
+      "net": 211.50999999999863,
+      "pct": 21.15099999999986
+    },
+    {
+      "month": "2025-12",
+      "net": 268.00000000000097,
+      "pct": 26.800000000000097
+    },
+    {
+      "month": "2026-01",
+      "net": 393.9499999999998,
+      "pct": 39.39499999999998
+    },
+    {
+      "month": "2026-02",
+      "net": 476.269999999997,
+      "pct": 47.626999999999704
+    },
+    {
+      "month": "2026-03",
+      "net": 1741.7100000000012,
+      "pct": 174.1710000000001
+    },
+    {
+      "month": "2026-04",
+      "net": 410.159999999997,
+      "pct": 41.0159999999997
+    },
+    {
+      "month": "2026-05",
+      "net": 862.1100000000058,
+      "pct": 86.21100000000058
+    },
+    {
+      "month": "2026-06",
+      "net": 502.70999999999924,
+      "pct": 50.27099999999992
+    },
+    {
+      "month": "2026-07",
+      "net": 82.63999999999892,
+      "pct": 8.263999999999893
+    },
+    {
+      "month": "2026-08",
+      "net": 1240.4300000000069,
+      "pct": 124.04300000000067
+    },
+    {
+      "month": "2026-09",
+      "net": 343.93999999999915,
+      "pct": 34.39399999999991
+    },
+    {
+      "month": "2026-10",
+      "net": 295.96000000000026,
+      "pct": 29.59600000000003
+    },
+    {
+      "month": "2026-11",
+      "net": 68.89000000000024,
+      "pct": 6.889000000000024
+    }
+  ],
+  "matrix": {
+    "A": {
+      "asia": {
+        "net": -10.3,
+        "wins": 0,
+        "losses": 1,
+        "trades": 1,
+        "winRate": 0
+      },
+      "london": {
+        "net": 11.7,
+        "wins": 1,
+        "losses": 0,
+        "trades": 1,
+        "winRate": 100
+      },
+      "londonNY": {
+        "net": 71.60000000000001,
+        "wins": 7,
+        "losses": 1,
+        "trades": 8,
+        "winRate": 87.5
+      },
+      "ny": {
+        "net": 2.799999999999997,
+        "wins": 2,
+        "losses": 2,
+        "trades": 4,
+        "winRate": 50
+      }
+    },
+    "B": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": -10.3,
+        "wins": 0,
+        "losses": 1,
+        "trades": 1,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": -30.900000000000002,
+        "wins": 0,
+        "losses": 3,
+        "trades": 3,
+        "winRate": 0
+      },
+      "ny": {
+        "net": -0.9000000000000021,
+        "wins": 1,
+        "losses": 2,
+        "trades": 3,
+        "winRate": 33.33333333333333
+      }
+    },
+    "C": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "D": {
+      "asia": {
+        "net": 52.89999999999999,
+        "wins": 5,
+        "losses": 2,
+        "trades": 7,
+        "winRate": 71.42857142857143
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "E": {
+      "asia": {
+        "net": 1631.020000000004,
+        "wins": 147,
+        "losses": 89,
+        "trades": 236,
+        "winRate": 62.28813559322034
+      },
+      "london": {
+        "net": 648.7999999999973,
+        "wins": 103,
+        "losses": 101,
+        "trades": 204,
+        "winRate": 50.49019607843137
+      },
+      "londonNY": {
+        "net": 879.360000000003,
+        "wins": 97,
+        "losses": 73,
+        "trades": 170,
+        "winRate": 57.05882352941176
+      },
+      "ny": {
+        "net": 434.63999999999766,
+        "wins": 125,
+        "losses": 139,
+        "trades": 264,
+        "winRate": 47.34848484848485
+      }
+    },
+    "F": {
+      "asia": {
+        "net": 585.6999999999995,
+        "wins": 188,
+        "losses": 173,
+        "trades": 361,
+        "winRate": 52.07756232686981
+      },
+      "london": {
+        "net": -36.80000000000001,
+        "wins": 10,
+        "losses": 16,
+        "trades": 26,
+        "winRate": 38.46153846153847
+      },
+      "londonNY": {
+        "net": -21.100000000000005,
+        "wins": 2,
+        "losses": 5,
+        "trades": 7,
+        "winRate": 28.57142857142857
+      },
+      "ny": {
+        "net": 79,
+        "wins": 13,
+        "losses": 7,
+        "trades": 20,
+        "winRate": 65
+      }
+    },
+    "G": {
+      "asia": {
+        "net": -4.3,
+        "wins": 0,
+        "losses": 1,
+        "trades": 1,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "H": {
+      "asia": {
+        "net": 44.50000000000006,
+        "wins": 17,
+        "losses": 18,
+        "trades": 35,
+        "winRate": 48.57142857142857
+      },
+      "london": {
+        "net": 54,
+        "wins": 11,
+        "losses": 9,
+        "trades": 20,
+        "winRate": 55.00000000000001
+      },
+      "londonNY": {
+        "net": 22.299999999999986,
+        "wins": 9,
+        "losses": 10,
+        "trades": 19,
+        "winRate": 47.368421052631575
+      },
+      "ny": {
+        "net": 71.40000000000003,
+        "wins": 21,
+        "losses": 21,
+        "trades": 42,
+        "winRate": 50
+      }
+    },
+    "I": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "J": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "K": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 52.87000000000026,
+        "wins": 14,
+        "losses": 18,
+        "trades": 32,
+        "winRate": 43.75
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 31.77999999999975,
+        "wins": 15,
+        "losses": 30,
+        "trades": 45,
+        "winRate": 33.33333333333333
+      }
+    },
+    "L": {
+      "asia": {
+        "net": 19.44599999999736,
+        "wins": 6,
+        "losses": 5,
+        "trades": 11,
+        "winRate": 54.54545454545454
+      },
+      "london": {
+        "net": 23.4,
+        "wins": 2,
+        "losses": 0,
+        "trades": 2,
+        "winRate": 100
+      },
+      "londonNY": {
+        "net": 3.4999999999999982,
+        "wins": 2,
+        "losses": 3,
+        "trades": 5,
+        "winRate": 40
+      },
+      "ny": {
+        "net": 22.499999999999996,
+        "wins": 3,
+        "losses": 2,
+        "trades": 5,
+        "winRate": 60
+      }
+    },
+    "M": {
+      "asia": {
+        "net": 33.299999999999976,
+        "wins": 48,
+        "losses": 81,
+        "trades": 129,
+        "winRate": 37.2093023255814
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "N": {
+      "asia": {
+        "net": 34.99999999999997,
+        "wins": 14,
+        "losses": 26,
+        "trades": 40,
+        "winRate": 35
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 36.29999999999998,
+        "wins": 8,
+        "losses": 11,
+        "trades": 19,
+        "winRate": 42.10526315789473
+      }
+    },
+    "O": {
+      "asia": {
+        "net": -17.500000000000004,
+        "wins": 1,
+        "losses": 4,
+        "trades": 5,
+        "winRate": 20
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "P": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 16.4,
+        "wins": 4,
+        "losses": 8,
+        "trades": 12,
+        "winRate": 33.33333333333333
+      },
+      "ny": {
+        "net": 18.799999999999997,
+        "wins": 2,
+        "losses": 2,
+        "trades": 4,
+        "winRate": 50
+      }
+    },
+    "Q": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "R": {
+      "asia": {
+        "net": -15.3,
+        "wins": 0,
+        "losses": 1,
+        "trades": 1,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "T": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 157.20000000000053,
+        "wins": 7,
+        "losses": 12,
+        "trades": 19,
+        "winRate": 36.84210526315789
+      },
+      "londonNY": {
+        "net": -4.799999999999269,
+        "wins": 2,
+        "losses": 8,
+        "trades": 10,
+        "winRate": 20
+      },
+      "ny": {
+        "net": 61.09999999999991,
+        "wins": 4,
+        "losses": 6,
+        "trades": 10,
+        "winRate": 40
+      }
+    },
+    "U": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    },
+    "V": {
+      "asia": {
+        "net": 37.2,
+        "wins": 5,
+        "losses": 1,
+        "trades": 6,
+        "winRate": 83.33333333333334
+      },
+      "london": {
+        "net": -37.8,
+        "wins": 0,
+        "losses": 6,
+        "trades": 6,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 4.799999999999998,
+        "wins": 2,
+        "losses": 2,
+        "trades": 4,
+        "winRate": 50
+      }
+    },
+    "W": {
+      "asia": {
+        "net": 172.86000000000212,
+        "wins": 7,
+        "losses": 19,
+        "trades": 26,
+        "winRate": 26.923076923076923
+      },
+      "london": {
+        "net": -56.7300000000012,
+        "wins": 9,
+        "losses": 12,
+        "trades": 21,
+        "winRate": 42.857142857142854
+      },
+      "londonNY": {
+        "net": 206.69999999999777,
+        "wins": 9,
+        "losses": 5,
+        "trades": 14,
+        "winRate": 64.28571428571429
+      },
+      "ny": {
+        "net": 122.83000000000055,
+        "wins": 1,
+        "losses": 5,
+        "trades": 6,
+        "winRate": 16.666666666666664
+      }
+    },
+    "X": {
+      "asia": {
+        "net": 482.6600000000004,
+        "wins": 9,
+        "losses": 27,
+        "trades": 36,
+        "winRate": 25
+      },
+      "london": {
+        "net": -120.44999999999999,
+        "wins": 2,
+        "losses": 12,
+        "trades": 14,
+        "winRate": 14.285714285714285
+      },
+      "londonNY": {
+        "net": 285.4199999999998,
+        "wins": 5,
+        "losses": 6,
+        "trades": 11,
+        "winRate": 45.45454545454545
+      },
+      "ny": {
+        "net": 601.6300000000003,
+        "wins": 4,
+        "losses": 10,
+        "trades": 14,
+        "winRate": 28.57142857142857
+      }
+    },
+    "Y": {
+      "asia": {
+        "net": -39.37999999999983,
+        "wins": 4,
+        "losses": 15,
+        "trades": 19,
+        "winRate": 21.052631578947366
+      },
+      "london": {
+        "net": -107.82000000000005,
+        "wins": 2,
+        "losses": 11,
+        "trades": 13,
+        "winRate": 15.384615384615385
+      },
+      "londonNY": {
+        "net": -69.7799999999999,
+        "wins": 3,
+        "losses": 11,
+        "trades": 14,
+        "winRate": 21.428571428571427
+      },
+      "ny": {
+        "net": 229.21000000000072,
+        "wins": 3,
+        "losses": 6,
+        "trades": 9,
+        "winRate": 33.33333333333333
+      }
+    },
+    "AA": {
+      "asia": {
+        "net": 533.8300000000011,
+        "wins": 11,
+        "losses": 36,
+        "trades": 47,
+        "winRate": 23.404255319148938
+      },
+      "london": {
+        "net": 447.8800000000001,
+        "wins": 9,
+        "losses": 12,
+        "trades": 21,
+        "winRate": 42.857142857142854
+      },
+      "londonNY": {
+        "net": 380.12000000000035,
+        "wins": 3,
+        "losses": 10,
+        "trades": 13,
+        "winRate": 23.076923076923077
+      },
+      "ny": {
+        "net": 38.16000000000012,
+        "wins": 8,
+        "losses": 21,
+        "trades": 29,
+        "winRate": 27.586206896551722
+      }
+    },
+    "Z": {
+      "asia": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "london": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "londonNY": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      },
+      "ny": {
+        "net": 0,
+        "wins": 0,
+        "losses": 0,
+        "trades": 0,
+        "winRate": 0
+      }
+    }
+  },
+  "strategyTotals": {
+    "A": {
+      "net": 75.80000000000001,
+      "trades": 14,
+      "wins": 10,
+      "losses": 4,
+      "winRate": 71.42857142857143,
+      "weeklyAvgPct": 0.10106666666666668,
+      "monthlyAvgPct": 0.42111111111111116,
+      "bestSession": "لندن ونيويورك",
+      "worstSession": "آسيا"
+    },
+    "B": {
+      "net": -42.10000000000001,
+      "trades": 7,
+      "wins": 1,
+      "losses": 6,
+      "winRate": 14.285714285714285,
+      "weeklyAvgPct": -0.05613333333333335,
+      "monthlyAvgPct": -0.23388888888888892,
+      "bestSession": "نيويورك",
+      "worstSession": "لندن ونيويورك"
+    },
+    "C": {
+      "net": 0,
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "winRate": 0,
+      "weeklyAvgPct": 0,
+      "monthlyAvgPct": 0,
+      "bestSession": null,
+      "worstSession": null
+    },
+    "D": {
+      "net": 52.89999999999999,
+      "trades": 7,
+      "wins": 5,
+      "losses": 2,
+      "winRate": 71.42857142857143,
+      "weeklyAvgPct": 0.07053333333333332,
+      "monthlyAvgPct": 0.29388888888888887,
+      "bestSession": "آسيا",
+      "worstSession": "آسيا"
+    },
+    "E": {
+      "net": 3593.8199999999574,
+      "trades": 874,
+      "wins": 472,
+      "losses": 402,
+      "winRate": 54.004576659038904,
+      "weeklyAvgPct": 4.791759999999943,
+      "monthlyAvgPct": 19.96566666666643,
+      "bestSession": "آسيا",
+      "worstSession": "نيويورك"
+    },
+    "F": {
+      "net": 606.8000000000004,
+      "trades": 414,
+      "wins": 213,
+      "losses": 201,
+      "winRate": 51.449275362318836,
+      "weeklyAvgPct": 0.8090666666666673,
+      "monthlyAvgPct": 3.3711111111111136,
+      "bestSession": "آسيا",
+      "worstSession": "لندن"
+    },
+    "G": {
+      "net": -4.3,
+      "trades": 1,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "weeklyAvgPct": -0.005733333333333333,
+      "monthlyAvgPct": -0.02388888888888889,
+      "bestSession": "آسيا",
+      "worstSession": "آسيا"
+    },
+    "H": {
+      "net": 192.19999999999973,
+      "trades": 116,
+      "wins": 58,
+      "losses": 58,
+      "winRate": 50,
+      "weeklyAvgPct": 0.2562666666666663,
+      "monthlyAvgPct": 1.0677777777777764,
+      "bestSession": "نيويورك",
+      "worstSession": "لندن ونيويورك"
+    },
+    "I": {
+      "net": 0,
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "winRate": 0,
+      "weeklyAvgPct": 0,
+      "monthlyAvgPct": 0,
+      "bestSession": null,
+      "worstSession": null
+    },
+    "J": {
+      "net": 0,
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "winRate": 0,
+      "weeklyAvgPct": 0,
+      "monthlyAvgPct": 0,
+      "bestSession": null,
+      "worstSession": null
+    },
+    "K": {
+      "net": 84.65000000000003,
+      "trades": 77,
+      "wins": 29,
+      "losses": 48,
+      "winRate": 37.66233766233766,
+      "weeklyAvgPct": 0.11286666666666671,
+      "monthlyAvgPct": 0.47027777777777796,
+      "bestSession": "لندن",
+      "worstSession": "نيويورك"
+    },
+    "L": {
+      "net": 68.84599999999739,
+      "trades": 23,
+      "wins": 13,
+      "losses": 10,
+      "winRate": 56.52173913043478,
+      "weeklyAvgPct": 0.0917946666666632,
+      "monthlyAvgPct": 0.3824777777777633,
+      "bestSession": "لندن",
+      "worstSession": "لندن ونيويورك"
+    },
+    "M": {
+      "net": 33.299999999999976,
+      "trades": 129,
+      "wins": 48,
+      "losses": 81,
+      "winRate": 37.2093023255814,
+      "weeklyAvgPct": 0.04439999999999997,
+      "monthlyAvgPct": 0.18499999999999986,
+      "bestSession": "آسيا",
+      "worstSession": "آسيا"
+    },
+    "N": {
+      "net": 71.29999999999995,
+      "trades": 59,
+      "wins": 22,
+      "losses": 37,
+      "winRate": 37.28813559322034,
+      "weeklyAvgPct": 0.09506666666666662,
+      "monthlyAvgPct": 0.3961111111111109,
+      "bestSession": "نيويورك",
+      "worstSession": "آسيا"
+    },
+    "O": {
+      "net": -17.500000000000004,
+      "trades": 5,
+      "wins": 1,
+      "losses": 4,
+      "winRate": 20,
+      "weeklyAvgPct": -0.023333333333333338,
+      "monthlyAvgPct": -0.09722222222222225,
+      "bestSession": "آسيا",
+      "worstSession": "آسيا"
+    },
+    "P": {
+      "net": 35.199999999999996,
+      "trades": 16,
+      "wins": 6,
+      "losses": 10,
+      "winRate": 37.5,
+      "weeklyAvgPct": 0.04693333333333333,
+      "monthlyAvgPct": 0.19555555555555554,
+      "bestSession": "نيويورك",
+      "worstSession": "لندن ونيويورك"
+    },
+    "Q": {
+      "net": 0,
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "winRate": 0,
+      "weeklyAvgPct": 0,
+      "monthlyAvgPct": 0,
+      "bestSession": null,
+      "worstSession": null
+    },
+    "R": {
+      "net": -15.3,
+      "trades": 1,
+      "wins": 0,
+      "losses": 1,
+      "winRate": 0,
+      "weeklyAvgPct": -0.0204,
+      "monthlyAvgPct": -0.085,
+      "bestSession": "آسيا",
+      "worstSession": "آسيا"
+    },
+    "T": {
+      "net": 213.50000000000108,
+      "trades": 39,
+      "wins": 13,
+      "losses": 26,
+      "winRate": 33.33333333333333,
+      "weeklyAvgPct": 0.2846666666666681,
+      "monthlyAvgPct": 1.1861111111111171,
+      "bestSession": "لندن",
+      "worstSession": "لندن ونيويورك"
+    },
+    "U": {
+      "net": 0,
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "winRate": 0,
+      "weeklyAvgPct": 0,
+      "monthlyAvgPct": 0,
+      "bestSession": null,
+      "worstSession": null
+    },
+    "V": {
+      "net": 4.2,
+      "trades": 16,
+      "wins": 7,
+      "losses": 9,
+      "winRate": 43.75,
+      "weeklyAvgPct": 0.005600000000000001,
+      "monthlyAvgPct": 0.023333333333333334,
+      "bestSession": "آسيا",
+      "worstSession": "لندن"
+    },
+    "W": {
+      "net": 445.65999999999923,
+      "trades": 67,
+      "wins": 26,
+      "losses": 41,
+      "winRate": 38.80597014925373,
+      "weeklyAvgPct": 0.5942133333333324,
+      "monthlyAvgPct": 2.4758888888888846,
+      "bestSession": "لندن ونيويورك",
+      "worstSession": "لندن"
+    },
+    "X": {
+      "net": 1249.2600000000014,
+      "trades": 75,
+      "wins": 20,
+      "losses": 55,
+      "winRate": 26.666666666666668,
+      "weeklyAvgPct": 1.6656800000000018,
+      "monthlyAvgPct": 6.94033333333334,
+      "bestSession": "نيويورك",
+      "worstSession": "لندن"
+    },
+    "Y": {
+      "net": 12.230000000000956,
+      "trades": 55,
+      "wins": 12,
+      "losses": 43,
+      "winRate": 21.818181818181817,
+      "weeklyAvgPct": 0.01630666666666794,
+      "monthlyAvgPct": 0.06794444444444975,
+      "bestSession": "نيويورك",
+      "worstSession": "لندن"
+    },
+    "AA": {
+      "net": 1399.990000000005,
+      "trades": 110,
+      "wins": 31,
+      "losses": 79,
+      "winRate": 28.18181818181818,
+      "weeklyAvgPct": 1.8666533333333402,
+      "monthlyAvgPct": 7.77772222222225,
+      "bestSession": "آسيا",
+      "worstSession": "نيويورك"
+    },
+    "Z": {
+      "net": 0,
+      "trades": 0,
+      "wins": 0,
+      "losses": 0,
+      "winRate": 0,
+      "weeklyAvgPct": 0,
+      "monthlyAvgPct": 0,
+      "bestSession": null,
+      "worstSession": null
+    }
+  },
+  "ranking": [
+    {
+      "strategy": "E",
+      "net": 3593.8199999999574,
+      "winRate": 54.004576659038904,
+      "trades": 874
+    },
+    {
+      "strategy": "AA",
+      "net": 1399.990000000005,
+      "winRate": 28.18181818181818,
+      "trades": 110
+    },
+    {
+      "strategy": "X",
+      "net": 1249.2600000000014,
+      "winRate": 26.666666666666668,
+      "trades": 75
+    },
+    {
+      "strategy": "F",
+      "net": 606.8000000000004,
+      "winRate": 51.449275362318836,
+      "trades": 414
+    },
+    {
+      "strategy": "W",
+      "net": 445.65999999999923,
+      "winRate": 38.80597014925373,
+      "trades": 67
+    },
+    {
+      "strategy": "T",
+      "net": 213.50000000000108,
+      "winRate": 33.33333333333333,
+      "trades": 39
+    },
+    {
+      "strategy": "H",
+      "net": 192.19999999999973,
+      "winRate": 50,
+      "trades": 116
+    },
+    {
+      "strategy": "K",
+      "net": 84.65000000000003,
+      "winRate": 37.66233766233766,
+      "trades": 77
+    },
+    {
+      "strategy": "A",
+      "net": 75.80000000000001,
+      "winRate": 71.42857142857143,
+      "trades": 14
+    },
+    {
+      "strategy": "N",
+      "net": 71.29999999999995,
+      "winRate": 37.28813559322034,
+      "trades": 59
+    },
+    {
+      "strategy": "L",
+      "net": 68.84599999999739,
+      "winRate": 56.52173913043478,
+      "trades": 23
+    },
+    {
+      "strategy": "D",
+      "net": 52.89999999999999,
+      "winRate": 71.42857142857143,
+      "trades": 7
+    },
+    {
+      "strategy": "P",
+      "net": 35.199999999999996,
+      "winRate": 37.5,
+      "trades": 16
+    },
+    {
+      "strategy": "M",
+      "net": 33.299999999999976,
+      "winRate": 37.2093023255814,
+      "trades": 129
+    },
+    {
+      "strategy": "Y",
+      "net": 12.230000000000956,
+      "winRate": 21.818181818181817,
+      "trades": 55
+    },
+    {
+      "strategy": "V",
+      "net": 4.2,
+      "winRate": 43.75,
+      "trades": 16
+    },
+    {
+      "strategy": "C",
+      "net": 0,
+      "winRate": 0,
+      "trades": 0
+    },
+    {
+      "strategy": "I",
+      "net": 0,
+      "winRate": 0,
+      "trades": 0
+    },
+    {
+      "strategy": "J",
+      "net": 0,
+      "winRate": 0,
+      "trades": 0
+    },
+    {
+      "strategy": "Q",
+      "net": 0,
+      "winRate": 0,
+      "trades": 0
+    },
+    {
+      "strategy": "U",
+      "net": 0,
+      "winRate": 0,
+      "trades": 0
+    },
+    {
+      "strategy": "Z",
+      "net": 0,
+      "winRate": 0,
+      "trades": 0
+    },
+    {
+      "strategy": "G",
+      "net": -4.3,
+      "winRate": 0,
+      "trades": 1
+    },
+    {
+      "strategy": "R",
+      "net": -15.3,
+      "winRate": 0,
+      "trades": 1
+    },
+    {
+      "strategy": "O",
+      "net": -17.500000000000004,
+      "winRate": 20,
+      "trades": 5
+    },
+    {
+      "strategy": "B",
+      "net": -42.10000000000001,
+      "winRate": 14.285714285714285,
+      "trades": 7
+    }
+  ],
+  "emaEnabled": true,
+  "emaState": "down",
+  "spreadCents": 30,
+  "lot": 0.01,
+  "tpRatio": 2,
+  "generatedAt": 1794436318515,
+  "signalsCount": 7196,
+  "fillsBlocked": 48069,
+  "blocked": {
+    "conflict": 877,
+    "expired": 1760,
+    "invalid": 721,
+    "single": 40143,
+    "ghost": 946,
+    "closeFilter": 452,
+    "openFilter": 172,
+    "dayStop": 1615,
+    "decayGuard": 1383,
+    "dailyTrend": 1837,
+    "erQuiet": 620
+  },
+  "sigByStrat": {
+    "E": 2318,
+    "H": 942,
+    "X": 240,
+    "Y": 162,
+    "AA": 641,
+    "T": 127,
+    "V": 107,
+    "W": 256,
+    "J": 3,
+    "Q": 28,
+    "R": 3,
+    "M": 1103,
+    "K": 142,
+    "G": 2,
+    "F": 731,
+    "N": 182,
+    "P": 59,
+    "C": 20,
+    "B": 15,
+    "A": 42,
+    "O": 25,
+    "L": 39,
+    "D": 9
+  },
+  "fillBlockedByStrat": {
+    "H": 576,
+    "J": 3,
+    "Q": 24,
+    "T": 84,
+    "V": 86,
+    "R": 2,
+    "M": 863,
+    "K": 57,
+    "G": 1,
+    "E": 1236,
+    "X": 163,
+    "Y": 102,
+    "AA": 519,
+    "W": 188,
+    "F": 265,
+    "P": 34,
+    "C": 18,
+    "A": 15,
+    "N": 45,
+    "B": 5,
+    "L": 7,
+    "O": 10,
+    "D": 1
+  },
+  "gateBlockedByStrat": {
+    "dailyTrend": {
+      "A": 24,
+      "B": 10,
+      "C": 4,
+      "F": 416,
+      "G": 22,
+      "H": 1101,
+      "J": 9,
+      "N": 165,
+      "O": 38,
+      "P": 48
+    },
+    "erQuiet": {
+      "C": 3,
+      "G": 27,
+      "H": 579,
+      "O": 11
+    }
+  },
+  "adaptiveGates": {
+    "sideGuard": {},
+    "decayGuard": {
+      "M": 1336,
+      "F": 47
+    },
+    "boostedFills": 0,
+    "boostedByStrat": {}
+  },
+  "railHits": {
+    "maxTrades": 0,
+    "dailyLoss": 0,
+    "lotClamp": 0,
+    "concurrent": 0
+  },
+  "fuseTrips": {
+    "daily": 0,
+    "weekly": 0,
+    "equity": 0
+  },
+  "sizing": {
+    "mode": "fixed",
+    "riskPct": 0
+  },
+  "avgScore": 0,
+  "totalR": 638.83,
+  "avgR": 0.303,
+  "equity": [
+    {
+      "t": 1749782400000,
+      "v": 1000
+    },
+    {
+      "t": 1749807900000,
+      "v": 1032.8000000000002
+    },
+    {
+      "t": 1750092600000,
+      "v": 1035.4200000000005
+    },
+    {
+      "t": 1750153200000,
+      "v": 1045.2200000000007
+    },
+    {
+      "t": 1750304700000,
+      "v": 1098.020000000001
+    },
+    {
+      "t": 1750398600000,
+      "v": 1145.7400000000007
+    },
+    {
+      "t": 1750437900000,
+      "v": 1124.440000000001
+    },
+    {
+      "t": 1750463700000,
+      "v": 1117.630000000001
+    },
+    {
+      "t": 1750688400000,
+      "v": 1112.1600000000012
+    },
+    {
+      "t": 1750732200000,
+      "v": 1098.9600000000014
+    },
+    {
+      "t": 1750757400000,
+      "v": 1083.7600000000016
+    },
+    {
+      "t": 1750777800000,
+      "v": 1073.1400000000017
+    },
+    {
+      "t": 1750949100000,
+      "v": 1107.9400000000019
+    },
+    {
+      "t": 1750992900000,
+      "v": 1113.0800000000022
+    },
+    {
+      "t": 1751032200000,
+      "v": 1078.8800000000024
+    },
+    {
+      "t": 1751245800000,
+      "v": 1067.6800000000026
+    },
+    {
+      "t": 1751342400000,
+      "v": 1100.8800000000028
+    },
+    {
+      "t": 1751418000000,
+      "v": 1109.680000000003
+    },
+    {
+      "t": 1751514300000,
+      "v": 1116.680000000003
+    },
+    {
+      "t": 1751556600000,
+      "v": 1110.220000000003
+    },
+    {
+      "t": 1751861400000,
+      "v": 1150.3800000000033
+    },
+    {
+      "t": 1751957700000,
+      "v": 1151.5500000000034
+    },
+    {
+      "t": 1752101700000,
+      "v": 1181.0600000000036
+    },
+    {
+      "t": 1752202500000,
+      "v": 1203.9900000000039
+    },
+    {
+      "t": 1752248700000,
+      "v": 1239.620000000004
+    },
+    {
+      "t": 1752472500000,
+      "v": 1303.2400000000039
+    },
+    {
+      "t": 1752651000000,
+      "v": 1298.6900000000041
+    },
+    {
+      "t": 1752698700000,
+      "v": 1283.4900000000043
+    },
+    {
+      "t": 1752776700000,
+      "v": 1294.2900000000045
+    },
+    {
+      "t": 1753085400000,
+      "v": 1273.0900000000047
+    },
+    {
+      "t": 1753244100000,
+      "v": 1343.3400000000047
+    },
+    {
+      "t": 1753347300000,
+      "v": 1328.7600000000048
+    },
+    {
+      "t": 1753432500000,
+      "v": 1337.8600000000051
+    },
+    {
+      "t": 1753717800000,
+      "v": 1422.770000000005
+    },
+    {
+      "t": 1753787100000,
+      "v": 1406.440000000005
+    },
+    {
+      "t": 1753930500000,
+      "v": 1442.330000000005
+    },
+    {
+      "t": 1754056200000,
+      "v": 1416.8400000000051
+    },
+    {
+      "t": 1754380500000,
+      "v": 1408.2800000000052
+    },
+    {
+      "t": 1754391300000,
+      "v": 1380.0000000000055
+    },
+    {
+      "t": 1754467200000,
+      "v": 1349.4600000000055
+    },
+    {
+      "t": 1754565600000,
+      "v": 1360.250000000006
+    },
+    {
+      "t": 1754661300000,
+      "v": 1337.7900000000063
+    },
+    {
+      "t": 1754697300000,
+      "v": 1359.8500000000067
+    },
+    {
+      "t": 1754933700000,
+      "v": 1365.550000000007
+    },
+    {
+      "t": 1755060900000,
+      "v": 1358.930000000007
+    },
+    {
+      "t": 1755168900000,
+      "v": 1332.2300000000077
+    },
+    {
+      "t": 1755240900000,
+      "v": 1319.490000000008
+    },
+    {
+      "t": 1755273600000,
+      "v": 1336.6300000000078
+    },
+    {
+      "t": 1755489600000,
+      "v": 1314.8400000000083
+    },
+    {
+      "t": 1755554700000,
+      "v": 1307.0500000000084
+    },
+    {
+      "t": 1755608700000,
+      "v": 1288.7800000000084
+    },
+    {
+      "t": 1755698700000,
+      "v": 1293.5800000000086
+    },
+    {
+      "t": 1755882300000,
+      "v": 1331.470000000009
+    },
+    {
+      "t": 1756175400000,
+      "v": 1352.5100000000089
+    },
+    {
+      "t": 1756181100000,
+      "v": 1325.2600000000089
+    },
+    {
+      "t": 1756442100000,
+      "v": 1302.2600000000089
+    },
+    {
+      "t": 1756731600000,
+      "v": 1388.310000000009
+    },
+    {
+      "t": 1756834800000,
+      "v": 1405.6100000000092
+    },
+    {
+      "t": 1756869900000,
+      "v": 1367.4100000000094
+    },
+    {
+      "t": 1756961700000,
+      "v": 1452.7200000000093
+    },
+    {
+      "t": 1757003400000,
+      "v": 1511.1800000000098
+    },
+    {
+      "t": 1757086200000,
+      "v": 1527.52000000001
+    },
+    {
+      "t": 1757354400000,
+      "v": 1583.0200000000104
+    },
+    {
+      "t": 1757466000000,
+      "v": 1595.5900000000106
+    },
+    {
+      "t": 1757606100000,
+      "v": 1622.1000000000108
+    },
+    {
+      "t": 1757930100000,
+      "v": 1605.7000000000112
+    },
+    {
+      "t": 1758102000000,
+      "v": 1612.5000000000114
+    },
+    {
+      "t": 1758186600000,
+      "v": 1624.8200000000115
+    },
+    {
+      "t": 1758264000000,
+      "v": 1581.570000000012
+    },
+    {
+      "t": 1758603900000,
+      "v": 1635.200000000012
+    },
+    {
+      "t": 1758771000000,
+      "v": 1698.0000000000123
+    },
+    {
+      "t": 1758827400000,
+      "v": 1738.4600000000123
+    },
+    {
+      "t": 1759116300000,
+      "v": 1735.2600000000125
+    },
+    {
+      "t": 1759206000000,
+      "v": 1748.0600000000127
+    },
+    {
+      "t": 1759231200000,
+      "v": 1730.6060000000102
+    },
+    {
+      "t": 1759334100000,
+      "v": 1762.1060000000102
+    },
+    {
+      "t": 1759381800000,
+      "v": 1743.2860000000105
+    },
+    {
+      "t": 1759426500000,
+      "v": 1812.306000000011
+    },
+    {
+      "t": 1759720200000,
+      "v": 1821.1060000000111
+    },
+    {
+      "t": 1759799700000,
+      "v": 1881.9060000000113
+    },
+    {
+      "t": 1759893600000,
+      "v": 1896.7060000000115
+    },
+    {
+      "t": 1759972200000,
+      "v": 1882.5060000000117
+    },
+    {
+      "t": 1760080200000,
+      "v": 1970.5060000000117
+    },
+    {
+      "t": 1760326500000,
+      "v": 1981.6160000000118
+    },
+    {
+      "t": 1760409300000,
+      "v": 1994.416000000012
+    },
+    {
+      "t": 1760421900000,
+      "v": 1984.2160000000122
+    },
+    {
+      "t": 1760433600000,
+      "v": 1998.5360000000119
+    },
+    {
+      "t": 1760506200000,
+      "v": 1994.336000000012
+    },
+    {
+      "t": 1760542200000,
+      "v": 2065.1360000000122
+    },
+    {
+      "t": 1760577000000,
+      "v": 2032.8660000000125
+    },
+    {
+      "t": 1760609700000,
+      "v": 2176.8460000000127
+    },
+    {
+      "t": 1760658300000,
+      "v": 2159.646000000012
+    },
+    {
+      "t": 1760664000000,
+      "v": 2172.4460000000113
+    },
+    {
+      "t": 1760668200000,
+      "v": 2185.2460000000106
+    },
+    {
+      "t": 1760679000000,
+      "v": 2195.04600000001
+    },
+    {
+      "t": 1760688900000,
+      "v": 2204.846000000009
+    },
+    {
+      "t": 1760720400000,
+      "v": 2188.6460000000084
+    },
+    {
+      "t": 1760934300000,
+      "v": 2168.4460000000076
+    },
+    {
+      "t": 1761001500000,
+      "v": 2164.826000000007
+    },
+    {
+      "t": 1761044700000,
+      "v": 2208.626000000006
+    },
+    {
+      "t": 1761068100000,
+      "v": 2151.4260000000054
+    },
+    {
+      "t": 1761102300000,
+      "v": 2138.4360000000047
+    },
+    {
+      "t": 1761181800000,
+      "v": 2100.946000000003
+    },
+    {
+      "t": 1761296700000,
+      "v": 2080.7460000000024
+    },
+    {
+      "t": 1761529200000,
+      "v": 2056.5460000000016
+    },
+    {
+      "t": 1761581100000,
+      "v": 2030.9960000000015
+    },
+    {
+      "t": 1761615000000,
+      "v": 2026.7960000000016
+    },
+    {
+      "t": 1761643200000,
+      "v": 2015.456000000002
+    },
+    {
+      "t": 1761696600000,
+      "v": 2024.2560000000021
+    },
+    {
+      "t": 1761783000000,
+      "v": 2062.2760000000017
+    },
+    {
+      "t": 1761801900000,
+      "v": 2133.076000000001
+    },
+    {
+      "t": 1761836100000,
+      "v": 2071.876
+    },
+    {
+      "t": 1761875100000,
+      "v": 2126.6759999999995
+    },
+    {
+      "t": 1761921600000,
+      "v": 2177.4759999999987
+    },
+    {
+      "t": 1762189200000,
+      "v": 2124.8259999999977
+    },
+    {
+      "t": 1762286100000,
+      "v": 2110.625999999997
+    },
+    {
+      "t": 1762403400000,
+      "v": 2136.875999999996
+    },
+    {
+      "t": 1762482000000,
+      "v": 2112.185999999995
+    },
+    {
+      "t": 1762795200000,
+      "v": 2111.9859999999944
+    },
+    {
+      "t": 1762881600000,
+      "v": 2122.7859999999937
+    },
+    {
+      "t": 1762911600000,
+      "v": 2212.435999999993
+    },
+    {
+      "t": 1762997400000,
+      "v": 2187.0459999999916
+    },
+    {
+      "t": 1763052000000,
+      "v": 2322.9759999999906
+    },
+    {
+      "t": 1763130000000,
+      "v": 2301.615999999991
+    },
+    {
+      "t": 1763139900000,
+      "v": 2260.8059999999905
+    },
+    {
+      "t": 1763370600000,
+      "v": 2261.6059999999893
+    },
+    {
+      "t": 1763444100000,
+      "v": 2303.4059999999886
+    },
+    {
+      "t": 1763524500000,
+      "v": 2335.205999999988
+    },
+    {
+      "t": 1763574300000,
+      "v": 2376.005999999987
+    },
+    {
+      "t": 1763611200000,
+      "v": 2349.8059999999864
+    },
+    {
+      "t": 1763664900000,
+      "v": 2324.2459999999855
+    },
+    {
+      "t": 1763713500000,
+      "v": 2387.045999999985
+    },
+    {
+      "t": 1763751000000,
+      "v": 2370.845999999984
+    },
+    {
+      "t": 1764039600000,
+      "v": 2356.6459999999834
+    },
+    {
+      "t": 1764067800000,
+      "v": 2365.4459999999826
+    },
+    {
+      "t": 1764125700000,
+      "v": 2407.245999999982
+    },
+    {
+      "t": 1764151500000,
+      "v": 2415.045999999981
+    },
+    {
+      "t": 1764176400000,
+      "v": 2378.4759999999806
+    },
+    {
+      "t": 1764239700000,
+      "v": 2375.4659999999803
+    },
+    {
+      "t": 1764297000000,
+      "v": 2326.995999999979
+    },
+    {
+      "t": 1764324000000,
+      "v": 2301.7959999999784
+    },
+    {
+      "t": 1764563400000,
+      "v": 2327.5959999999777
+    },
+    {
+      "t": 1764644400000,
+      "v": 2386.185999999977
+    },
+    {
+      "t": 1764674700000,
+      "v": 2363.475999999977
+    },
+    {
+      "t": 1764726600000,
+      "v": 2337.4059999999763
+    },
+    {
+      "t": 1764824400000,
+      "v": 2387.2059999999756
+    },
+    {
+      "t": 1764867300000,
+      "v": 2365.2759999999753
+    },
+    {
+      "t": 1765180200000,
+      "v": 2371.4559999999747
+    },
+    {
+      "t": 1765265400000,
+      "v": 2403.255999999974
+    },
+    {
+      "t": 1765310100000,
+      "v": 2388.055999999973
+    },
+    {
+      "t": 1765429500000,
+      "v": 2366.955999999973
+    },
+    {
+      "t": 1765560300000,
+      "v": 2318.755999999972
+    },
+    {
+      "t": 1765818000000,
+      "v": 2311.195999999971
+    },
+    {
+      "t": 1765965900000,
+      "v": 2323.99599999997
+    },
+    {
+      "t": 1766076000000,
+      "v": 2343.81599999997
+    },
+    {
+      "t": 1766116200000,
+      "v": 2383.4259999999686
+    },
+    {
+      "t": 1766388600000,
+      "v": 2420.825999999968
+    },
+    {
+      "t": 1766458800000,
+      "v": 2433.6259999999675
+    },
+    {
+      "t": 1766476500000,
+      "v": 2590.025999999967
+    },
+    {
+      "t": 1766595000000,
+      "v": 2604.8259999999664
+    },
+    {
+      "t": 1766714700000,
+      "v": 2727.2459999999655
+    },
+    {
+      "t": 1766974500000,
+      "v": 2707.045999999965
+    },
+    {
+      "t": 1767060900000,
+      "v": 2664.055999999964
+    },
+    {
+      "t": 1767113100000,
+      "v": 2672.8559999999634
+    },
+    {
+      "t": 1767164400000,
+      "v": 2687.6559999999627
+    },
+    {
+      "t": 1767193500000,
+      "v": 2641.6859999999615
+    },
+    {
+      "t": 1767371400000,
+      "v": 2621.4859999999608
+    },
+    {
+      "t": 1767592800000,
+      "v": 2600.28599999996
+    },
+    {
+      "t": 1767632400000,
+      "v": 2585.1759999999595
+    },
+    {
+      "t": 1767720600000,
+      "v": 2539.115999999959
+    },
+    {
+      "t": 1767811200000,
+      "v": 2582.9159999999583
+    },
+    {
+      "t": 1767880800000,
+      "v": 2604.7159999999576
+    },
+    {
+      "t": 1768185000000,
+      "v": 2591.645999999957
+    },
+    {
+      "t": 1768187700000,
+      "v": 2581.4459999999563
+    },
+    {
+      "t": 1768211400000,
+      "v": 2574.2459999999555
+    },
+    {
+      "t": 1768266600000,
+      "v": 2736.9059999999545
+    },
+    {
+      "t": 1768334100000,
+      "v": 2712.6559999999536
+    },
+    {
+      "t": 1768442100000,
+      "v": 2787.255999999954
+    },
+    {
+      "t": 1768484100000,
+      "v": 2808.375999999954
+    },
+    {
+      "t": 1768584000000,
+      "v": 2758.5559999999523
+    },
+    {
+      "t": 1768589400000,
+      "v": 2707.3559999999516
+    },
+    {
+      "t": 1768788900000,
+      "v": 2697.155999999951
+    },
+    {
+      "t": 1768792500000,
+      "v": 2679.95599999995
+    },
+    {
+      "t": 1768892100000,
+      "v": 2668.7559999999494
+    },
+    {
+      "t": 1768964700000,
+      "v": 2716.0559999999487
+    },
+    {
+      "t": 1768967400000,
+      "v": 2728.855999999948
+    },
+    {
+      "t": 1768977300000,
+      "v": 2787.655999999947
+    },
+    {
+      "t": 1768994700000,
+      "v": 2805.4559999999465
+    },
+    {
+      "t": 1769019900000,
+      "v": 2814.2559999999457
+    },
+    {
+      "t": 1769045100000,
+      "v": 2831.055999999945
+    },
+    {
+      "t": 1769122500000,
+      "v": 2818.8559999999443
+    },
+    {
+      "t": 1769151300000,
+      "v": 3076.1559999999436
+    },
+    {
+      "t": 1769390700000,
+      "v": 3089.955999999943
+    },
+    {
+      "t": 1769421600000,
+      "v": 3112.755999999942
+    },
+    {
+      "t": 1769462400000,
+      "v": 3090.455999999941
+    },
+    {
+      "t": 1769476500000,
+      "v": 3121.2559999999403
+    },
+    {
+      "t": 1769532900000,
+      "v": 3165.0559999999396
+    },
+    {
+      "t": 1769554200000,
+      "v": 3140.855999999939
+    },
+    {
+      "t": 1769562600000,
+      "v": 3152.655999999938
+    },
+    {
+      "t": 1769569800000,
+      "v": 3175.4559999999374
+    },
+    {
+      "t": 1769572800000,
+      "v": 3165.2559999999366
+    },
+    {
+      "t": 1769575500000,
+      "v": 3132.055999999936
+    },
+    {
+      "t": 1769583300000,
+      "v": 3121.855999999935
+    },
+    {
+      "t": 1769639100000,
+      "v": 3137.6559999999345
+    },
+    {
+      "t": 1769666100000,
+      "v": 3153.4559999999337
+    },
+    {
+      "t": 1769694300000,
+      "v": 3127.255999999933
+    },
+    {
+      "t": 1769706600000,
+      "v": 3142.0559999999323
+    },
+    {
+      "t": 1769726100000,
+      "v": 3087.8559999999316
+    },
+    {
+      "t": 1769753100000,
+      "v": 3088.655999999931
+    },
+    {
+      "t": 1769765700000,
+      "v": 3027.45599999993
+    },
+    {
+      "t": 1769994600000,
+      "v": 3026.3359999999293
+    },
+    {
+      "t": 1770006900000,
+      "v": 3065.1359999999286
+    },
+    {
+      "t": 1770051300000,
+      "v": 3073.935999999928
+    },
+    {
+      "t": 1770057600000,
+      "v": 3047.735999999927
+    },
+    {
+      "t": 1770081000000,
+      "v": 3083.5359999999264
+    },
+    {
+      "t": 1770090900000,
+      "v": 3064.3359999999257
+    },
+    {
+      "t": 1770106200000,
+      "v": 3108.135999999925
+    },
+    {
+      "t": 1770124800000,
+      "v": 3106.935999999924
+    },
+    {
+      "t": 1770142500000,
+      "v": 3090.7359999999235
+    },
+    {
+      "t": 1770174300000,
+      "v": 3105.5359999999228
+    },
+    {
+      "t": 1770192300000,
+      "v": 3143.4259999999213
+    },
+    {
+      "t": 1770211200000,
+      "v": 3171.2259999999205
+    },
+    {
+      "t": 1770225900000,
+      "v": 3241.5659999999198
+    },
+    {
+      "t": 1770253800000,
+      "v": 3249.365999999919
+    },
+    {
+      "t": 1770276000000,
+      "v": 3230.1659999999183
+    },
+    {
+      "t": 1770289500000,
+      "v": 3238.9659999999176
+    },
+    {
+      "t": 1770306000000,
+      "v": 3247.765999999917
+    },
+    {
+      "t": 1770340200000,
+      "v": 3222.565999999916
+    },
+    {
+      "t": 1770390300000,
+      "v": 3231.3659999999154
+    },
+    {
+      "t": 1770404400000,
+      "v": 3197.1659999999147
+    },
+    {
+      "t": 1770606300000,
+      "v": 3228.965999999914
+    },
+    {
+      "t": 1770627300000,
+      "v": 3264.765999999913
+    },
+    {
+      "t": 1770638400000,
+      "v": 3308.5659999999125
+    },
+    {
+      "t": 1770666300000,
+      "v": 3325.7359999999117
+    },
+    {
+      "t": 1770697200000,
+      "v": 3277.535999999911
+    },
+    {
+      "t": 1770820800000,
+      "v": 3265.78599999991
+    },
+    {
+      "t": 1770858600000,
+      "v": 3301.5859999999093
+    },
+    {
+      "t": 1770945000000,
+      "v": 3344.3859999999086
+    },
+    {
+      "t": 1770951900000,
+      "v": 3353.185999999908
+    },
+    {
+      "t": 1771006200000,
+      "v": 3368.985999999907
+    },
+    {
+      "t": 1771216500000,
+      "v": 3404.7859999999064
+    },
+    {
+      "t": 1771298700000,
+      "v": 3401.5859999999057
+    },
+    {
+      "t": 1771320600000,
+      "v": 3361.045999999905
+    },
+    {
+      "t": 1771346100000,
+      "v": 3439.845999999904
+    },
+    {
+      "t": 1771464600000,
+      "v": 3478.755999999903
+    },
+    {
+      "t": 1771517100000,
+      "v": 3431.5559999999023
+    },
+    {
+      "t": 1771556400000,
+      "v": 3426.045999999902
+    },
+    {
+      "t": 1771607100000,
+      "v": 3399.8459999999013
+    },
+    {
+      "t": 1771812600000,
+      "v": 3378.6459999999006
+    },
+    {
+      "t": 1771864200000,
+      "v": 3387.7459999999
+    },
+    {
+      "t": 1771898400000,
+      "v": 3354.405999999899
+    },
+    {
+      "t": 1771922100000,
+      "v": 3360.7659999998987
+    },
+    {
+      "t": 1771949100000,
+      "v": 3396.565999999898
+    },
+    {
+      "t": 1771989000000,
+      "v": 3397.365999999897
+    },
+    {
+      "t": 1772068200000,
+      "v": 3447.1659999998965
+    },
+    {
+      "t": 1772126100000,
+      "v": 3458.7159999998958
+    },
+    {
+      "t": 1772183400000,
+      "v": 3459.515999999895
+    },
+    {
+      "t": 1772209200000,
+      "v": 3492.2059999998937
+    },
+    {
+      "t": 1772441100000,
+      "v": 3536.005999999893
+    },
+    {
+      "t": 1772465400000,
+      "v": 3551.8059999998923
+    },
+    {
+      "t": 1772500200000,
+      "v": 3566.6059999998915
+    },
+    {
+      "t": 1772541300000,
+      "v": 3540.405999999891
+    },
+    {
+      "t": 1772554500000,
+      "v": 3554.20599999989
+    },
+    {
+      "t": 1772586300000,
+      "v": 3587.0059999998894
+    },
+    {
+      "t": 1772611500000,
+      "v": 3595.8059999998886
+    },
+    {
+      "t": 1772637000000,
+      "v": 3605.2559999998875
+    },
+    {
+      "t": 1772675700000,
+      "v": 3618.945999999886
+    },
+    {
+      "t": 1772728500000,
+      "v": 3630.3659999998854
+    },
+    {
+      "t": 1772811300000,
+      "v": 3639.1659999998847
+    },
+    {
+      "t": 1773015000000,
+      "v": 3648.185999999884
+    },
+    {
+      "t": 1773054900000,
+      "v": 3670.9859999998835
+    },
+    {
+      "t": 1773074100000,
+      "v": 3714.7859999998827
+    },
+    {
+      "t": 1773109800000,
+      "v": 3676.585999999882
+    },
+    {
+      "t": 1773155100000,
+      "v": 3658.745999999881
+    },
+    {
+      "t": 1773249300000,
+      "v": 3704.54599999988
+    },
+    {
+      "t": 1773304800000,
+      "v": 3680.4359999998796
+    },
+    {
+      "t": 1773370500000,
+      "v": 3710.655999999879
+    },
+    {
+      "t": 1773442500000,
+      "v": 3896.725999999878
+    },
+    {
+      "t": 1773628200000,
+      "v": 3876.525999999877
+    },
+    {
+      "t": 1773653700000,
+      "v": 3955.3259999998763
+    },
+    {
+      "t": 1773718500000,
+      "v": 3902.1259999998756
+    },
+    {
+      "t": 1773815700000,
+      "v": 3912.1659999998747
+    },
+    {
+      "t": 1773859500000,
+      "v": 3926.6659999998737
+    },
+    {
+      "t": 1773891600000,
+      "v": 3987.465999999873
+    },
+    {
+      "t": 1773926100000,
+      "v": 4031.2659999998723
+    },
+    {
+      "t": 1773936300000,
+      "v": 4005.0659999998716
+    },
+    {
+      "t": 1773941100000,
+      "v": 4005.865999999871
+    },
+    {
+      "t": 1773965400000,
+      "v": 4020.66599999987
+    },
+    {
+      "t": 1774008600000,
+      "v": 4036.4659999998694
+    },
+    {
+      "t": 1774027500000,
+      "v": 4010.2659999998687
+    },
+    {
+      "t": 1774229100000,
+      "v": 4488.615999999868
+    },
+    {
+      "t": 1774247700000,
+      "v": 4497.415999999867
+    },
+    {
+      "t": 1774257300000,
+      "v": 4984.9159999998665
+    },
+    {
+      "t": 1774271100000,
+      "v": 4958.715999999866
+    },
+    {
+      "t": 1774286100000,
+      "v": 5037.515999999865
+    },
+    {
+      "t": 1774319100000,
+      "v": 5017.315999999864
+    },
+    {
+      "t": 1774326000000,
+      "v": 5061.115999999864
+    },
+    {
+      "t": 1774343400000,
+      "v": 5069.915999999863
+    },
+    {
+      "t": 1774362900000,
+      "v": 5078.715999999862
+    },
+    {
+      "t": 1774398300000,
+      "v": 5086.515999999861
+    },
+    {
+      "t": 1774444800000,
+      "v": 5165.315999999861
+    },
+    {
+      "t": 1774457100000,
+      "v": 5144.14599999986
+    },
+    {
+      "t": 1774570200000,
+      "v": 5240.945999999859
+    },
+    {
+      "t": 1774605300000,
+      "v": 5196.085999999858
+    },
+    {
+      "t": 1774866600000,
+      "v": 5231.885999999858
+    },
+    {
+      "t": 1774890300000,
+      "v": 5182.575999999857
+    },
+    {
+      "t": 1774927200000,
+      "v": 5251.3759999998565
+    },
+    {
+      "t": 1774932000000,
+      "v": 5232.175999999856
+    },
+    {
+      "t": 1774975800000,
+      "v": 5170.975999999855
+    },
+    {
+      "t": 1775011200000,
+      "v": 5122.775999999854
+    },
+    {
+      "t": 1775037900000,
+      "v": 5096.575999999854
+    },
+    {
+      "t": 1775058000000,
+      "v": 5105.375999999853
+    },
+    {
+      "t": 1775092800000,
+      "v": 5130.175999999852
+    },
+    {
+      "t": 1775118900000,
+      "v": 5297.515999999851
+    },
+    {
+      "t": 1775143200000,
+      "v": 5306.315999999851
+    },
+    {
+      "t": 1775154300000,
+      "v": 5368.59599999985
+    },
+    {
+      "t": 1775452800000,
+      "v": 5334.39599999985
+    },
+    {
+      "t": 1775472600000,
+      "v": 5343.195999999849
+    },
+    {
+      "t": 1775550300000,
+      "v": 5413.995999999848
+    },
+    {
+      "t": 1775571000000,
+      "v": 5422.7959999998475
+    },
+    {
+      "t": 1775613600000,
+      "v": 5397.595999999847
+    },
+    {
+      "t": 1775638500000,
+      "v": 5375.395999999846
+    },
+    {
+      "t": 1775692200000,
+      "v": 5351.195999999845
+    },
+    {
+      "t": 1775798400000,
+      "v": 5378.995999999845
+    },
+    {
+      "t": 1775846100000,
+      "v": 5447.795999999844
+    },
+    {
+      "t": 1776052800000,
+      "v": 5430.595999999843
+    },
+    {
+      "t": 1776131700000,
+      "v": 5472.395999999842
+    },
+    {
+      "t": 1776216000000,
+      "v": 5498.195999999842
+    },
+    {
+      "t": 1776245400000,
+      "v": 5536.995999999841
+    },
+    {
+      "t": 1776337500000,
+      "v": 5526.79599999984
+    },
+    {
+      "t": 1776363000000,
+      "v": 5471.995999999839
+    },
+    {
+      "t": 1776439500000,
+      "v": 5482.795999999838
+    },
+    {
+      "t": 1776647400000,
+      "v": 5437.595999999838
+    },
+    {
+      "t": 1776707400000,
+      "v": 5427.5859999998365
+    },
+    {
+      "t": 1776798300000,
+      "v": 5485.385999999836
+    },
+    {
+      "t": 1776814500000,
+      "v": 5436.305999999835
+    },
+    {
+      "t": 1776920700000,
+      "v": 5411.455999999834
+    },
+    {
+      "t": 1777050300000,
+      "v": 5439.255999999833
+    },
+    {
+      "t": 1777363500000,
+      "v": 5450.735999999832
+    },
+    {
+      "t": 1777397700000,
+      "v": 5503.535999999831
+    },
+    {
+      "t": 1777474200000,
+      "v": 5510.33599999983
+    },
+    {
+      "t": 1777482900000,
+      "v": 5630.43599999983
+    },
+    {
+      "t": 1777511700000,
+      "v": 5616.235999999829
+    },
+    {
+      "t": 1777541400000,
+      "v": 5660.035999999828
+    },
+    {
+      "t": 1777621500000,
+      "v": 5658.355999999827
+    },
+    {
+      "t": 1777669500000,
+      "v": 5736.275999999826
+    },
+    {
+      "t": 1777908000000,
+      "v": 5717.155999999825
+    },
+    {
+      "t": 1777953600000,
+      "v": 5739.955999999825
+    },
+    {
+      "t": 1778080200000,
+      "v": 5737.755999999824
+    },
+    {
+      "t": 1778127000000,
+      "v": 5772.555999999823
+    },
+    {
+      "t": 1778183700000,
+      "v": 5937.225999999822
+    },
+    {
+      "t": 1778263800000,
+      "v": 5953.365999999822
+    },
+    {
+      "t": 1778469300000,
+      "v": 6124.065999999822
+    },
+    {
+      "t": 1778512800000,
+      "v": 6184.865999999822
+    },
+    {
+      "t": 1778558400000,
+      "v": 6192.665999999821
+    },
+    {
+      "t": 1778645700000,
+      "v": 6186.46599999982
+    },
+    {
+      "t": 1778700000000,
+      "v": 6240.2659999998195
+    },
+    {
+      "t": 1778776800000,
+      "v": 6181.475999999819
+    },
+    {
+      "t": 1778817900000,
+      "v": 6214.385999999818
+    },
+    {
+      "t": 1778865300000,
+      "v": 6183.185999999817
+    },
+    {
+      "t": 1779073500000,
+      "v": 6292.505999999817
+    },
+    {
+      "t": 1779092700000,
+      "v": 6497.605999999817
+    },
+    {
+      "t": 1779161100000,
+      "v": 6470.3759999998165
+    },
+    {
+      "t": 1779244200000,
+      "v": 6490.475999999816
+    },
+    {
+      "t": 1779284100000,
+      "v": 6533.275999999815
+    },
+    {
+      "t": 1779300900000,
+      "v": 6513.0759999998145
+    },
+    {
+      "t": 1779361500000,
+      "v": 6527.875999999814
+    },
+    {
+      "t": 1779383700000,
+      "v": 6563.675999999813
+    },
+    {
+      "t": 1779672600000,
+      "v": 6570.475999999812
+    },
+    {
+      "t": 1779720300000,
+      "v": 6584.275999999812
+    },
+    {
+      "t": 1779822900000,
+      "v": 6620.075999999811
+    },
+    {
+      "t": 1779895200000,
+      "v": 6564.78599999981
+    },
+    {
+      "t": 1779949800000,
+      "v": 6569.205999999809
+    },
+    {
+      "t": 1779983100000,
+      "v": 6562.005999999808
+    },
+    {
+      "t": 1779988800000,
+      "v": 6529.235999999807
+    },
+    {
+      "t": 1780029000000,
+      "v": 6535.035999999806
+    },
+    {
+      "t": 1780077900000,
+      "v": 6540.485999999805
+    },
+    {
+      "t": 1780330200000,
+      "v": 6502.175999999805
+    },
+    {
+      "t": 1780397400000,
+      "v": 6474.805999999804
+    },
+    {
+      "t": 1780457700000,
+      "v": 6455.535999999804
+    },
+    {
+      "t": 1780511700000,
+      "v": 6472.695999999803
+    },
+    {
+      "t": 1780595400000,
+      "v": 6463.345999999802
+    },
+    {
+      "t": 1780674600000,
+      "v": 6471.1459999998015
+    },
+    {
+      "t": 1780892100000,
+      "v": 6479.945999999801
+    },
+    {
+      "t": 1780934100000,
+      "v": 6612.0659999998
+    },
+    {
+      "t": 1781023800000,
+      "v": 6672.865999999799
+    },
+    {
+      "t": 1781100300000,
+      "v": 6708.665999999798
+    },
+    {
+      "t": 1781112600000,
+      "v": 6787.4659999997975
+    },
+    {
+      "t": 1781139900000,
+      "v": 6771.265999999797
+    },
+    {
+      "t": 1781144700000,
+      "v": 6759.065999999796
+    },
+    {
+      "t": 1781197500000,
+      "v": 6778.475999999795
+    },
+    {
+      "t": 1781262300000,
+      "v": 6730.055999999794
+    },
+    {
+      "t": 1781557200000,
+      "v": 6706.925999999794
+    },
+    {
+      "t": 1781717400000,
+      "v": 6699.075999999793
+    },
+    {
+      "t": 1781755500000,
+      "v": 6665.875999999792
+    },
+    {
+      "t": 1781800200000,
+      "v": 6716.675999999791
+    },
+    {
+      "t": 1781863200000,
+      "v": 6709.4759999997905
+    },
+    {
+      "t": 1781884200000,
+      "v": 6718.27599999979
+    },
+    {
+      "t": 1782098100000,
+      "v": 6832.085999999789
+    },
+    {
+      "t": 1782147000000,
+      "v": 6847.8859999997885
+    },
+    {
+      "t": 1782201900000,
+      "v": 6883.685999999788
+    },
+    {
+      "t": 1782264600000,
+      "v": 6884.485999999787
+    },
+    {
+      "t": 1782314700000,
+      "v": 6861.405999999786
+    },
+    {
+      "t": 1782370200000,
+      "v": 6932.2059999997855
+    },
+    {
+      "t": 1782441900000,
+      "v": 6968.005999999785
+    },
+    {
+      "t": 1782489600000,
+      "v": 6980.925999999785
+    },
+    {
+      "t": 1782703500000,
+      "v": 7018.725999999784
+    },
+    {
+      "t": 1782788700000,
+      "v": 7054.525999999783
+    },
+    {
+      "t": 1782839100000,
+      "v": 7008.895999999782
+    },
+    {
+      "t": 1782914700000,
+      "v": 7044.695999999782
+    },
+    {
+      "t": 1782973500000,
+      "v": 7031.495999999781
+    },
+    {
+      "t": 1783048200000,
+      "v": 6986.29599999978
+    },
+    {
+      "t": 1783108500000,
+      "v": 7076.885999999779
+    },
+    {
+      "t": 1783369200000,
+      "v": 7109.165999999779
+    },
+    {
+      "t": 1783483200000,
+      "v": 7113.045999999778
+    },
+    {
+      "t": 1783525800000,
+      "v": 7118.185999999777
+    },
+    {
+      "t": 1783658100000,
+      "v": 7094.885999999777
+    },
+    {
+      "t": 1783906800000,
+      "v": 7122.685999999776
+    },
+    {
+      "t": 1783962900000,
+      "v": 7148.485999999775
+    },
+    {
+      "t": 1784019300000,
+      "v": 7204.5359999997745
+    },
+    {
+      "t": 1784088000000,
+      "v": 7184.335999999774
+    },
+    {
+      "t": 1784143800000,
+      "v": 7164.445999999773
+    },
+    {
+      "t": 1784258100000,
+      "v": 7163.245999999773
+    },
+    {
+      "t": 1784302500000,
+      "v": 7200.895999999772
+    },
+    {
+      "t": 1784308800000,
+      "v": 7142.225999999771
+    },
+    {
+      "t": 1784567400000,
+      "v": 7117.085999999771
+    },
+    {
+      "t": 1784689800000,
+      "v": 7157.985999999771
+    },
+    {
+      "t": 1784712300000,
+      "v": 7173.78599999977
+    },
+    {
+      "t": 1784801400000,
+      "v": 7186.39599999977
+    },
+    {
+      "t": 1784885100000,
+      "v": 7195.195999999769
+    },
+    {
+      "t": 1785133500000,
+      "v": 7161.085999999768
+    },
+    {
+      "t": 1785169500000,
+      "v": 7132.685999999768
+    },
+    {
+      "t": 1785319800000,
+      "v": 7167.485999999767
+    },
+    {
+      "t": 1785358800000,
+      "v": 7141.285999999766
+    },
+    {
+      "t": 1785399300000,
+      "v": 7115.085999999766
+    },
+    {
+      "t": 1785722400000,
+      "v": 7122.935999999765
+    },
+    {
+      "t": 1785760200000,
+      "v": 7078.055999999765
+    },
+    {
+      "t": 1785813000000,
+      "v": 7063.855999999764
+    },
+    {
+      "t": 1785896700000,
+      "v": 7099.6559999997635
+    },
+    {
+      "t": 1785919800000,
+      "v": 7066.455999999763
+    },
+    {
+      "t": 1785949200000,
+      "v": 7071.255999999762
+    },
+    {
+      "t": 1785982800000,
+      "v": 7255.655999999762
+    },
+    {
+      "t": 1786015800000,
+      "v": 7273.455999999761
+    },
+    {
+      "t": 1786116600000,
+      "v": 7276.25599999976
+    },
+    {
+      "t": 1786146900000,
+      "v": 7533.39599999976
+    },
+    {
+      "t": 1786375500000,
+      "v": 7686.5159999997595
+    },
+    {
+      "t": 1786436700000,
+      "v": 7712.315999999759
+    },
+    {
+      "t": 1786473300000,
+      "v": 7728.115999999758
+    },
+    {
+      "t": 1786548900000,
+      "v": 7707.905999999758
+    },
+    {
+      "t": 1786590900000,
+      "v": 7712.205999999757
+    },
+    {
+      "t": 1786651500000,
+      "v": 7703.005999999757
+    },
+    {
+      "t": 1786712100000,
+      "v": 7719.485999999756
+    },
+    {
+      "t": 1786980300000,
+      "v": 7727.285999999755
+    },
+    {
+      "t": 1787077200000,
+      "v": 7712.505999999755
+    },
+    {
+      "t": 1787114100000,
+      "v": 7754.305999999754
+    },
+    {
+      "t": 1787237100000,
+      "v": 7753.105999999753
+    },
+    {
+      "t": 1787356500000,
+      "v": 7933.975999999753
+    },
+    {
+      "t": 1787541900000,
+      "v": 8162.2759999997525
+    },
+    {
+      "t": 1787628300000,
+      "v": 8170.075999999752
+    },
+    {
+      "t": 1787674800000,
+      "v": 8173.875999999751
+    },
+    {
+      "t": 1787733900000,
+      "v": 8187.04599999975
+    },
+    {
+      "t": 1787769900000,
+      "v": 8235.105999999752
+    },
+    {
+      "t": 1787804700000,
+      "v": 8280.905999999755
+    },
+    {
+      "t": 1787852400000,
+      "v": 8258.955999999756
+    },
+    {
+      "t": 1787936100000,
+      "v": 8273.75599999976
+    },
+    {
+      "t": 1788144300000,
+      "v": 8344.555999999762
+    },
+    {
+      "t": 1788185100000,
+      "v": 8347.265999999765
+    },
+    {
+      "t": 1788270000000,
+      "v": 8356.065999999768
+    },
+    {
+      "t": 1788282900000,
+      "v": 8351.86599999977
+    },
+    {
+      "t": 1788343800000,
+      "v": 8337.665999999774
+    },
+    {
+      "t": 1788447300000,
+      "v": 8387.465999999777
+    },
+    {
+      "t": 1788455700000,
+      "v": 8363.03599999978
+    },
+    {
+      "t": 1788535800000,
+      "v": 8342.835999999783
+    },
+    {
+      "t": 1788789300000,
+      "v": 8373.635999999786
+    },
+    {
+      "t": 1788925800000,
+      "v": 8407.435999999789
+    },
+    {
+      "t": 1789054500000,
+      "v": 8459.795999999791
+    },
+    {
+      "t": 1789109400000,
+      "v": 8438.595999999794
+    },
+    {
+      "t": 1789348800000,
+      "v": 8445.395999999797
+    },
+    {
+      "t": 1789413600000,
+      "v": 8459.1959999998
+    },
+    {
+      "t": 1789477500000,
+      "v": 8430.995999999803
+    },
+    {
+      "t": 1789615200000,
+      "v": 8473.795999999806
+    },
+    {
+      "t": 1789653900000,
+      "v": 8482.715999999808
+    },
+    {
+      "t": 1789701300000,
+      "v": 8537.51599999981
+    },
+    {
+      "t": 1789744800000,
+      "v": 8553.315999999813
+    },
+    {
+      "t": 1789958700000,
+      "v": 8565.115999999816
+    },
+    {
+      "t": 1790048100000,
+      "v": 8552.52599999982
+    },
+    {
+      "t": 1790085300000,
+      "v": 8493.665999999821
+    },
+    {
+      "t": 1790136600000,
+      "v": 8495.935999999821
+    },
+    {
+      "t": 1790265000000,
+      "v": 8450.735999999824
+    },
+    {
+      "t": 1790330100000,
+      "v": 8440.475999999824
+    },
+    {
+      "t": 1790356800000,
+      "v": 8439.275999999827
+    },
+    {
+      "t": 1790568600000,
+      "v": 8538.925999999828
+    },
+    {
+      "t": 1790609700000,
+      "v": 8571.725999999831
+    },
+    {
+      "t": 1790655600000,
+      "v": 8576.525999999834
+    },
+    {
+      "t": 1790751000000,
+      "v": 8601.475999999837
+    },
+    {
+      "t": 1790792700000,
+      "v": 8610.27599999984
+    },
+    {
+      "t": 1790843400000,
+      "v": 8718.705999999842
+    },
+    {
+      "t": 1790931600000,
+      "v": 8727.975999999844
+    },
+    {
+      "t": 1790955600000,
+      "v": 8750.625999999847
+    },
+    {
+      "t": 1791224400000,
+      "v": 8695.42599999985
+    },
+    {
+      "t": 1791284100000,
+      "v": 8671.985999999853
+    },
+    {
+      "t": 1791345600000,
+      "v": 8712.415999999856
+    },
+    {
+      "t": 1791451500000,
+      "v": 8699.215999999858
+    },
+    {
+      "t": 1791522000000,
+      "v": 8659.05599999986
+    },
+    {
+      "t": 1791772200000,
+      "v": 8629.405999999863
+    },
+    {
+      "t": 1791861000000,
+      "v": 8655.205999999866
+    },
+    {
+      "t": 1791969000000,
+      "v": 8635.005999999868
+    },
+    {
+      "t": 1792033200000,
+      "v": 8642.805999999871
+    },
+    {
+      "t": 1792118400000,
+      "v": 8678.605999999874
+    },
+    {
+      "t": 1792167300000,
+      "v": 8652.405999999877
+    },
+    {
+      "t": 1792405800000,
+      "v": 8688.20599999988
+    },
+    {
+      "t": 1792650900000,
+      "v": 8683.005999999883
+    },
+    {
+      "t": 1792728300000,
+      "v": 8761.405999999884
+    },
+    {
+      "t": 1792799700000,
+      "v": 8881.545999999887
+    },
+    {
+      "t": 1793170200000,
+      "v": 8909.34599999989
+    },
+    {
+      "t": 1793247900000,
+      "v": 8917.145999999893
+    },
+    {
+      "t": 1793353800000,
+      "v": 8950.505999999896
+    },
+    {
+      "t": 1793588700000,
+      "v": 8929.305999999899
+    },
+    {
+      "t": 1793702700000,
+      "v": 8977.9059999999
+    },
+    {
+      "t": 1793777700000,
+      "v": 8953.565999999902
+    },
+    {
+      "t": 1793816400000,
+      "v": 8916.715999999904
+    },
+    {
+      "t": 1793884500000,
+      "v": 8929.515999999907
+    },
+    {
+      "t": 1793927700000,
+      "v": 8956.925999999909
+    },
+    {
+      "t": 1793973600000,
+      "v": 8994.725999999911
+    },
+    {
+      "t": 1794195600000,
+      "v": 8972.525999999914
+    },
+    {
+      "t": 1794304500000,
+      "v": 8978.565999999917
+    },
+    {
+      "t": 1794441600000,
+      "v": 9043.50599999992
+    },
+    {
+      "t": 1794441600000,
+      "v": 9060.45599999992
+    }
+  ],
+  "finalStructure": {
+    "trend1h": "down",
+    "trend4h": "down",
+    "lastRealHigh": {
+      "kind": "LH",
+      "price": 4066.83,
+      "t": 1794387600000
+    },
+    "lastRealLow": {
+      "kind": "LL",
+      "price": 3986.64,
+      "t": 1794427200000
+    },
+    "lastEvents": [
+      {
+        "type": "BOS",
+        "dir": "down",
+        "level": 4032.89,
+        "t": 1794340800000
+      },
+      {
+        "type": "CHoCH",
+        "dir": "up",
+        "level": 4052.65,
+        "t": 1794384000000
+      },
+      {
+        "type": "liquidity_sweep",
+        "dir": "up",
+        "level": 4066.03,
+        "t": 1794391200000
+      },
+      {
+        "type": "BOS",
+        "dir": "down",
+        "level": 4026.43,
+        "t": 1794416400000
+      },
+      {
+        "type": "BOS",
+        "dir": "down",
+        "level": 4010.65,
+        "t": 1794420000000
+      },
+      {
+        "type": "BOS",
+        "dir": "down",
+        "level": 4000.59,
+        "t": 1794427200000
+      },
+      {
+        "type": "BOS",
+        "dir": "down",
+        "level": 3992.96,
+        "t": 1794430800000
+      },
+      {
+        "type": "BOS",
+        "dir": "down",
+        "level": 3986.64,
+        "t": 1794434400000
+      }
+    ]
+  },
+  "runMs": 499
+}

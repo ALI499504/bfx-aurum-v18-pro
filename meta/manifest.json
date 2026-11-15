@@ -1,0 +1,448 @@
+{
+  "base": "https://preview-chat-78d758a3-2904-47bf-862f-8130a1a76742.space-z.ai",
+  "capturedAt": "2026-11-11T22:38:56.309Z",
+  "assets": [
+    {
+      "kind": "html",
+      "url": "/",
+      "path": "site/index.html",
+      "status": 200,
+      "bytes": 24475,
+      "sha256": "3df658e8c0b409e0",
+      "contentType": "text/html; charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:17.383Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/chunks/turbopack-428f962ba93c561d.js",
+      "path": "site/_next/static/chunks/turbopack-428f962ba93c561d.js",
+      "status": 200,
+      "bytes": 10196,
+      "sha256": "e5d26e6e543299ab",
+      "contentType": "application/javascript; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:41.296Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/chunks/2f236954d6a65e12.js",
+      "path": "site/_next/static/chunks/2f236954d6a65e12.js",
+      "status": 200,
+      "bytes": 30849,
+      "sha256": "de98aefbea0cffbf",
+      "contentType": "application/javascript; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:41.638Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/chunks/49849b1b478e6b82.js",
+      "path": "site/_next/static/chunks/49849b1b478e6b82.js",
+      "status": 200,
+      "bytes": 16869,
+      "sha256": "40e1cf55efa181f6",
+      "contentType": "application/javascript; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:41.971Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/chunks/771dedee3f5e1621.js",
+      "path": "site/_next/static/chunks/771dedee3f5e1621.js",
+      "status": 200,
+      "bytes": 224634,
+      "sha256": "32d1182713a2d5fa",
+      "contentType": "application/javascript; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:42.787Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/chunks/29cc553a73248c69.js",
+      "path": "site/_next/static/chunks/29cc553a73248c69.js",
+      "status": 200,
+      "bytes": 158133,
+      "sha256": "4811ee79802de444",
+      "contentType": "application/javascript; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:43.184Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/chunks/a6dad97d9634a72d.js",
+      "path": "site/_next/static/chunks/a6dad97d9634a72d.js",
+      "status": 200,
+      "bytes": 112594,
+      "sha256": "0973c1d64c88adc8",
+      "contentType": "application/javascript; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:43.563Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/chunks/eab0eb96527832df.js",
+      "path": "site/_next/static/chunks/eab0eb96527832df.js",
+      "status": 200,
+      "bytes": 550280,
+      "sha256": "06ebd48d91604f47",
+      "contentType": "application/javascript; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:44.368Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/chunks/2b1e3a695777d8a4.css",
+      "path": "site/_next/static/chunks/2b1e3a695777d8a4.css",
+      "status": 200,
+      "bytes": 146395,
+      "sha256": "a6d0322b956ac6bf",
+      "contentType": "text/css; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:44.712Z"
+    },
+    {
+      "kind": "asset",
+      "url": "/_next/static/4d0o6LcPrCZYhqeyr2nTh/_ssgManifest.js",
+      "path": "site/_next/static/4d0o6LcPrCZYhqeyr2nTh/_ssgManifest.js",
+      "status": 200,
+      "bytes": 80,
+      "sha256": "678f6ce2cb80b1fe",
+      "contentType": "application/javascript; charset=UTF-8",
+      "capturedAt": "2026-11-11T22:38:44.975Z"
+    }
+  ],
+  "api": [
+    {
+      "kind": "api",
+      "url": "/api/system/health",
+      "path": "api/system/health.json",
+      "status": 200,
+      "bytes": 6801,
+      "sha256": "95367234b6708e33",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:45.252Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/price",
+      "path": "api/market/price.json",
+      "status": 200,
+      "bytes": 459,
+      "sha256": "aabd376b3cebb3e7",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:45.509Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/mt5/status",
+      "path": "api/mt5/status.json",
+      "status": 200,
+      "bytes": 1293,
+      "sha256": "7ace26190dceaef1",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:45.776Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/mt5/account",
+      "path": "api/mt5/account.json",
+      "status": 200,
+      "bytes": 722,
+      "sha256": "d495660b6f079e98",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:46.059Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/mt5/tick",
+      "path": "api/mt5/tick.json",
+      "status": 200,
+      "bytes": 894,
+      "sha256": "b81de70f9d244c9e",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:46.332Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/settings",
+      "path": "api/engine/settings.json",
+      "status": 200,
+      "bytes": 18713,
+      "sha256": "753ce402423d069c",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:46.615Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/signals",
+      "path": "api/engine/signals.json",
+      "status": 200,
+      "bytes": 917,
+      "sha256": "199d6c69825620fb",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:46.891Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/alerts",
+      "path": "api/engine/alerts.json",
+      "status": 200,
+      "bytes": 69,
+      "sha256": "5c668274d70072bd",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:47.179Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/alerts?limit=40",
+      "path": "api/engine/alerts-limit40.json",
+      "status": 200,
+      "bytes": 69,
+      "sha256": "5c668274d70072bd",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:47.446Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/automanager",
+      "path": "api/engine/automanager.json",
+      "status": 200,
+      "bytes": 5213,
+      "sha256": "8efa513d2ed721f9",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:48.240Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/backtest?meta=1",
+      "path": "api/backtest/meta.json",
+      "status": 200,
+      "bytes": 180,
+      "sha256": "cd15bcba2ab19c1e",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:48.560Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/backtest",
+      "path": "api/backtest/run-latest.json",
+      "status": 200,
+      "bytes": 1189655,
+      "sha256": "077e1f0fbd1eea91",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:49.223Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/basket",
+      "path": "api/engine/basket.json",
+      "status": 200,
+      "bytes": 23866,
+      "sha256": "141223593f09b487",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:49.526Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/tuner",
+      "path": "api/tuning/tuner.json",
+      "status": 200,
+      "bytes": 13405,
+      "sha256": "89d1a8c6e4329aea",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:49.843Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/trainer",
+      "path": "api/tuning/trainer.json",
+      "status": 200,
+      "bytes": 2284,
+      "sha256": "78fa55f2d7835dfc",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:50.157Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/visitors",
+      "path": "api/system/visitors.json",
+      "status": 200,
+      "bytes": 407,
+      "sha256": "fb17c720b8a78537",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:50.425Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/jarvis/auth",
+      "path": "api/jarvis/auth.json",
+      "status": 200,
+      "bytes": 39,
+      "sha256": "a9a27446269f47e8",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:50.714Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/jarvis",
+      "path": "api/jarvis/chat-state.json",
+      "status": 503,
+      "bytes": 146,
+      "sha256": "9d28f3a692277c98",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:50.983Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/chart?tf=5m&limit=800",
+      "path": "api/market/chart-5m.json",
+      "status": 200,
+      "bytes": 128653,
+      "sha256": "17d590824286d5d5",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:51.551Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/chart?tf=15m&limit=800",
+      "path": "api/market/chart-15m.json",
+      "status": 200,
+      "bytes": 129152,
+      "sha256": "1002a405ec2c205f",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:51.897Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/chart?tf=30m&limit=800",
+      "path": "api/market/chart-30m.json",
+      "status": 200,
+      "bytes": 129320,
+      "sha256": "3992f75c30e5ef5c",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:52.189Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/chart?tf=1h&limit=800",
+      "path": "api/market/chart-1h.json",
+      "status": 200,
+      "bytes": 129455,
+      "sha256": "d83dc15c036aa3e2",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:52.564Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/chart?tf=4h&limit=800",
+      "path": "api/market/chart-4h.json",
+      "status": 200,
+      "bytes": 129477,
+      "sha256": "13b0164e6f71b37e",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:52.906Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/chart?tf=1d&limit=800",
+      "path": "api/market/chart-1d.json",
+      "status": 200,
+      "bytes": 130654,
+      "sha256": "02c30607d07f9051",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:53.233Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/chart?tf=1w&limit=800",
+      "path": "api/market/chart-1w.json",
+      "status": 200,
+      "bytes": 98511,
+      "sha256": "75b7bb5187542b63",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:53.544Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/chart?tf=1M&limit=800",
+      "path": "api/market/chart-1M.json",
+      "status": 200,
+      "bytes": 29603,
+      "sha256": "d155cefe7a43948d",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:53.811Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/forecast?tf=5m",
+      "path": "api/market/forecast-5m.json",
+      "status": 200,
+      "bytes": 6947,
+      "sha256": "443645cabe1dc243",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:54.099Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/forecast?tf=15m",
+      "path": "api/market/forecast-15m.json",
+      "status": 200,
+      "bytes": 6928,
+      "sha256": "be7d91e772f6e191",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:54.389Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/forecast?tf=30m",
+      "path": "api/market/forecast-30m.json",
+      "status": 200,
+      "bytes": 6930,
+      "sha256": "db089753c32707bb",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:54.658Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/forecast?tf=1h",
+      "path": "api/market/forecast-1h.json",
+      "status": 200,
+      "bytes": 6913,
+      "sha256": "66d103b98c3866c9",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:55.206Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/forecast?tf=4h",
+      "path": "api/market/forecast-4h.json",
+      "status": 200,
+      "bytes": 6925,
+      "sha256": "c9257319ae4cd1c8",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:55.478Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/forecast?tf=1d",
+      "path": "api/market/forecast-1d.json",
+      "status": 200,
+      "bytes": 6941,
+      "sha256": "f7edb20e49bef978",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:55.756Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/forecast?tf=1w",
+      "path": "api/market/forecast-1w.json",
+      "status": 200,
+      "bytes": 6929,
+      "sha256": "988aaaf35448cb4d",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:56.044Z"
+    },
+    {
+      "kind": "api",
+      "url": "/api/forecast?tf=1M",
+      "path": "api/market/forecast-1M.json",
+      "status": 200,
+      "bytes": 6927,
+      "sha256": "711eb34aaf0293a1",
+      "contentType": "application/json;charset=utf-8",
+      "capturedAt": "2026-11-11T22:38:56.308Z"
+    }
+  ]
+}
