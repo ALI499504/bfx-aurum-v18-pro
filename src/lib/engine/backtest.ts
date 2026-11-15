@@ -684,7 +684,6 @@ export function runBacktest(
     while (sigPtr.i < signals.length && signals[sigPtr.i].knownAt <= t) {
       const s = signals[sigPtr.i++];
       if (warmup) continue; // فترة التسخين — بلا تنفيذ
-      if (s.strategy === 'Z') continue;
       signalsCount++;
       sigByStrat[s.strategy] = (sigByStrat[s.strategy] ?? 0) + 1;
       const st = signalToSetup(s, setupId++, sess ?? 'asia');

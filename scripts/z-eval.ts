@@ -52,8 +52,10 @@ function buildSettings(zOn: boolean, systemOn: boolean): Settings {
   return s;
 }
 
-function run(w: BacktestWindow, s: Settings) {
-  return withBacktestEngine(w, data => runBacktest(data, s, Date.now(), [], { fromT: w.reportFrom, toT: w.reportTo }));
+function run(w: BacktestWindow, s: Settings): { strategy: string; pnl: number }[] {
+  const r = withBacktestEngine(w, data => runBacktest(data, s, Date.now(), [], { fromT: w.reportFrom, toT: w.reportTo }));
+  if (!r.ok) throw new Error('باك-تست فشل: ' + r.reason);
+  return (r.result.trades as { strategy: string; pnl: number }[]);
 }
 
 async function main() {
@@ -64,19 +66,19 @@ async function main() {
 
   console.log('\n=== Z وحدها — التدريب (2025-06 → 2026-05) ===');
   const tr = run(TRAIN_W, buildSettings(true, false));
-  console.log(line(metricsOf((tr as { trades: { strategy: string; pnl: number }[] }).trades, 'Z')));
+  console.log(line(metricsOf(tr, 'Z')));
 
   console.log('\n=== Z وحدها — التحقق الخارجي (2026-06 → الآن) ===');
   const oos = run(OOS_W, buildSettings(true, false));
-  console.log(line(metricsOf((oos as { trades: { strategy: string; pnl: number }[] }).trades, 'Z')));
+  console.log(line(metricsOf(oos, 'Z')));
 
   console.log('\n=== النظام الحي المعتمد وحده — خارج العينة ===');
   const sys0 = run(OOS_W, buildSettings(false, true));
-  console.log(line(metricsOf((sys0 as { trades: { strategy: string; pnl: number }[] }).trades)));
+  console.log(line(metricsOf(sys0)));
 
   console.log('\n=== النظام المعتمد + Z — خارج العينة ===');
   const sys1 = run(OOS_W, buildSettings(true, true));
-  const t1 = (sys1 as { trades: { strategy: string; pnl: number }[] }).trades;
+  const t1 = sys1;
   console.log('النظام كله:', line(metricsOf(t1)));
   console.log('Z داخل النظام:', line(metricsOf(t1, 'Z')));
 }
