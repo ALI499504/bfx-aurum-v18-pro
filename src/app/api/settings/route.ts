@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { DEFAULT_SETTINGS, Settings } from '@/lib/engine/rules';
 import { enforceFrozenSettings, guardFrozenPatches, guardFrozenSettings, pushRefusal } from '@/lib/engine/constitution';
+import { ensureSettingsSeeded } from '@/lib/server/seedSettings';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,7 @@ function mergeDeep(base: unknown, saved: unknown): Record<string, unknown> {
 
 export async function GET() {
   try {
+    await ensureSettingsSeeded();
     const row = await db.botSettings.findUnique({ where: { key: 'main' } });
     if (!row) return NextResponse.json({ settings: DEFAULT_SETTINGS });
     const saved = JSON.parse(row.json) as Settings;

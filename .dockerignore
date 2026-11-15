@@ -10,6 +10,7 @@ skills
 examples
 mini-services
 db
+!db/settings-seed.json
 Caddyfile
 SESSION-CONTEXT.md
 bun.lock

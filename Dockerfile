@@ -24,6 +24,8 @@ ENV PORT=3000 HOSTNAME=0.0.0.0
 ENV DATABASE_URL="file:/app/db/custom.db"
 RUN mkdir -p /app/db
 COPY --from=builder /app/db/custom.db /app/db/custom.db
+# بذرة الإعدادات المعتمدة — الحاوية الجديدة تزرعها في القاعدة عند أول قراءة
+COPY --from=builder /app/db/settings-seed.json /app/db/settings-seed.json
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public

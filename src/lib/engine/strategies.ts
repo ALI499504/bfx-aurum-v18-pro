@@ -1924,6 +1924,76 @@ export function detectAA(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] 
 // (payoff 4.27 في المقارنة البحثية). التنفيذ بأمر حد عند إعادة
 // اختبار سعر الإغلاق الكاسر خلال نافذة الصلاحية.
 // ============================================================
+
+// ============================================================
+// Z: انجراف السيولة وإعادة الاستحواذ (Liquidation Sweep & Reclaim — SMC)
+// الفكرة البحثية: الشمعة الساعية التي تكسر قاع/قمة محور مؤكد بوشّها فقط
+// (صيد الستوبات) ثم تُغلق من جديد خلف المستوى = فشل اختراق واستحواذ،
+// وهي من أعلى الحواف إحصائياً في أدبيات SMC (ICT: sweep-and-reclaim).
+// الدخول: ماركت على افتتاح الشمعة التالية. الوقف: خلف ذيل السحبة + هامش
+// (مقيد بسقف الدستور 15$). الهدف: rr × مسافة الوقف — عائد غير متماثل.
+// كل محور يُستهلك مرة واحدة (قاعدة المرة الواحدة عبر levelKey)، والمحور
+// الذي كُسر بإغلاق كامل قبل السحبة يُلغى (كان كسراً حقيقياً لا انجرافاً).
+// ============================================================
+export function detectZ(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] {
+  const out: SignalEvent[] = [];
+  const P = ctx.params.Z;
+  if (!P.enabled) return out;
+  const c = inp.c1h, ms = TF_MS['1h'];
+  if (c.length < P.lookback * 2) return out;
+  const ps = P.pivotStrength;
+  let lowPiv: { idx: number; t: number; price: number } | null = null;   // آخر قاع مؤكد (سيولة بيعية)
+  let highPiv: { idx: number; t: number; price: number } | null = null;  // آخر قمة مؤكدة (سيولة شرائية)
+  for (let i = ps; i < c.length; i++) {
+    // تأكيد محور جديد عند الشمعة k = i - ps (ps شموع على كل جانب — بلا تسلل مستقبلي)
+    const k = i - ps;
+    if (k >= ps) {
+      let isLow = true, isHigh = true;
+      for (let j = k - ps; j <= k + ps; j++) {
+        if (j === k) continue;
+        if (c[j].l <= c[k].l) isLow = false;
+        if (c[j].h >= c[k].h) isHigh = false;
+      }
+      if (isLow) lowPiv = { idx: k, t: c[k].t, price: c[k].l };
+      if (isHigh) highPiv = { idx: k, t: c[k].t, price: c[k].h };
+    }
+    for (const side of ['buy', 'sell'] as const) {
+      const piv = side === 'buy' ? lowPiv : highPiv;
+      if (!piv) continue;
+      if (i - piv.idx > P.lookback || i - piv.idx < ps + 1) continue;
+      const swept = side === 'buy'
+        ? c[i].l < piv.price - pips(P.minSweepPips) && c[i].c > piv.price
+        : c[i].h > piv.price + pips(P.minSweepPips) && c[i].c < piv.price;
+      if (!swept) continue;
+      // المستوى لم يُكسر بإغلاق كامل بين تأكيد المحور والسحبة — وإلا فهو كسر لا انجراف
+      let intact = true;
+      for (let j = piv.idx + ps + 1; j < i; j++) {
+        if (side === 'buy' ? c[j].c < piv.price : c[j].c > piv.price) { intact = false; break; }
+      }
+      if (!intact) continue;
+      const entry = c[i].c;
+      const knownAt = c[i].t + ms;
+      const dir = side;
+      const g = gateDir(ctx, 'Z', 'main', P.main, dir, knownAt);
+      if (!g.ok) continue;
+      const wick = side === 'buy' ? pipsBetween(entry, c[i].l) : pipsBetween(entry, c[i].h);
+      const slPips = Math.min(150, Math.max(30, Math.round(wick) + P.slBufPips));
+      const tpPips = Math.max(30, Math.round(slPips * P.rr));
+      push(out, {
+        strategy: 'Z', case: 'main', scenario: g.scenario, dir,
+        entry,
+        slPips, tpPips,
+        refLevel: piv.price, levelKey: `Z:${side}:${piv.t}`, knownAt,
+        market: true,
+        reason: `انجراف سيولة ${dir === 'buy' ? 'تحت القاع' : 'فوق القمة'} ${piv.price.toFixed(2)} بعمق ≥ ${P.minSweepPips} بيب وإغلاق استحواذ عند ${entry.toFixed(2)} — وقف خلف الذيل ${slPips} بيب، هدف ${P.rr}× الوقف`,
+        expiresAt: knownAt + P.expHours * 3600e3,
+      });
+      if (side === 'buy') lowPiv = null; else highPiv = null; // المحور استُهلك
+    }
+  }
+  return out;
+}
+
 export function detectX(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] {
   const out: SignalEvent[] = [];
   const P = ctx.params.X;
@@ -2016,6 +2086,7 @@ export function runAllDetectors(inp: DetectorsInput, ctx: DetectorsCtx): SignalE
   safe(() => detectX(inp, ctx), "X");
   safe(() => detectY(inp, ctx), "Y");
   safe(() => detectAA(inp, ctx), "AA");
+  safe(() => detectZ(inp, ctx), "Z");
 
   // ---- بوابة التنظيم المركزية (خطة التحويل): تصفية العكسية ضد اليومي + حصر C/G/H/O في الهدوء ----
   // مفاتيح التفعيل من القواعد العليا (26 و27) — الافتراضي مفعّلان حفاظاً على خطة التحويل

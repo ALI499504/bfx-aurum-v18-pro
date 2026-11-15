@@ -387,11 +387,27 @@ export interface XParams {
 }
 
 // ---------- الحاوية الكاملة ----------
+
+// ---------- Z: انجراف السيولة وإعادة الاستحواذ (SMC — Liquidation Sweep & Reclaim) ----------
+// صيد الستوبات: شمعة ساعية تكسر قاع/قمة محور مؤكد بوشّها فقط ثم تُغلق من جديد فوق/تحته
+// (إفشال الاختراق = استحواذ) — دخول ماركت على الافتتاح التالي، وقف خلف ذيل السحبة
+// مع هامش، هدف = rr × الوقف (عائد غير متماثل كما في مقارنة X البحثية).
+export interface ZParams {
+  enabled: boolean;
+  main: CaseCfg;
+  pivotStrength: number;    // شموع تأكيد المحور على كل جانب (3)
+  lookback: number;         // نافذة بحث المحور المؤكد بالشموع الساعية (40)
+  minSweepPips: number;     // عمق السحبة الأدنى خلف المحور بالبيبز (15)
+  slBufPips: number;        // هامش الوقف خلف ذيل السحبة بالبيبز (15)
+  rr: number;               // الهدف = rr × مسافة الوقف (2.0)
+  expHours: number;         // صلاحية الأمر بالساعات (2)
+}
+
 export interface TamsaParams {
   A: AParams; B: BParams; C: CParams; D: DParams; E: EParams; F: FParams;
   G: GParams; H: HParams; I: IParams; J: JParams; K: KParams; L: LParams;
   M: MParams; N: NParams; O: OParams; P: PParams; Q: QParams; R: RParams;
-  T: TParams; U: UParams; V: VParams; W: WParams; X: XParams; Y: YParams; AA: AAParams;
+  T: TParams; U: UParams; V: VParams; W: WParams; X: XParams; Y: YParams; AA: AAParams; Z: ZParams;
 }
 
 export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
@@ -557,6 +573,12 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     emaFast: 14, emaMid: 18, emaSlow: 24, pullMax: 3,
     atrN: 14, slAtrMult: 2.5, tpAtrMult: 12, expHours: 12,
   },
+  Z: {
+    enabled: false,
+    main: caseCfg(true),
+    pivotStrength: 3, lookback: 40, minSweepPips: 15,
+    slBufPips: 15, rr: 2.0, expHours: 2,
+  },
 };
 
 /** الجلسات المسموحة حرفياً لكل استراتيجية وفق الدليل (تقفل البقية برمز القفل الرمادي) */
@@ -586,6 +608,7 @@ export const ALLOWED_SESSIONS: Record<keyof TamsaParams, SessionKey[]> = {
   X: ['asia', 'london', 'londonNY', 'ny'],
   Y: ['asia', 'london', 'londonNY', 'ny'],
   AA: ['asia', 'london', 'londonNY', 'ny'],
+  Z: ['asia', 'london', 'londonNY', 'ny'],
 };
 
 export type SessionKey = 'asia' | 'london' | 'londonNY' | 'ny';
@@ -643,3 +666,5 @@ export const STRATEGY_CASES: Record<keyof TamsaParams, TamsaCaseKey[]> = {
   Y: ['main'],
   AA: ['main'],
 };
+
+

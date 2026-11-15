@@ -6,6 +6,7 @@
 import { db } from '@/lib/db';
 import { DEFAULT_SETTINGS, Settings } from '@/lib/engine/rules';
 import { enforceFrozenSettings } from '@/lib/engine/constitution';
+import { ensureSettingsSeeded } from '@/lib/server/seedSettings';
 
 /** دمج عميق مع الافتراضيات — شجرة TAMSA تتوسع دون فقدان تعديلات المستخدم */
 function mergeDeep(base: unknown, saved: unknown): Record<string, unknown> {
@@ -22,6 +23,7 @@ function mergeDeep(base: unknown, saved: unknown): Record<string, unknown> {
 
 export async function loadBotSettings(): Promise<Settings> {
   try {
+    await ensureSettingsSeeded();
     const row = await db.botSettings.findUnique({ where: { key: 'main' } });
     if (row) {
       const saved = JSON.parse(row.json) as Settings;
