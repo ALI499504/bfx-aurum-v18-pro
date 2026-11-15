@@ -11,4 +11,4 @@
 //
 // false = إعادة فتح القسم كما كان بالكامل — كل شيء يعود فوراً.
 // ============================================================
-export const JARVIS_SECTION_CLOSED = true;
+export const JARVIS_SECTION_CLOSED = false;
