@@ -583,6 +583,15 @@ export function runBacktest(
 
   const endT = c5[c5.length - 1].t + TF_MS['5m'];
 
+  // القاعدة 14 داخل حدود البيانات حصراً: تقويم ForexFactory المخزّن يغطي الأسبوع الحالي فقط،
+  // وتطبيق مواعيده على التاريخ الكامل كان يُدخل أحداثاً مؤرخة بعد آخر شمعة (تسريب مستقبلي
+  // يمنع صفقات نهاية النافذة) ويحرك الأرقام مع دوران التقويم الأسبوعي. الأحداث خارج
+  // [بداية نافذة التقرير، نهايتها + 15 دقيقة] تُستبعد من الحجب بالكامل — الحد الأعلى
+  // +15د يغطي حجب «قبل الخبر» للشمعة الأخيرة دون أي تسريب أبعد منه.
+  const newsFloor = range?.fromT ?? c5[0].t;
+  const newsHorizon = (range?.toT ?? endT) + 15 * 60e3;
+  const newsWin = news.filter(n => n.t >= newsFloor && n.t <= newsHorizon);
+
   // ---- سجل قرارات الوكيل (نافذة آخر 24 ساعة) ----
   const LOG_WINDOW_MS = 24 * 3600e3;
   const CLOSE_LABELS: Record<Trade['result'], string> = {
@@ -888,7 +897,7 @@ export function runBacktest(
         if (weekStopped) { bump('weeklyStop'); logBlock('weeklyStop', t, st); continue; }
         if (equityHalted) { bump('equityFloor'); logBlock('equityFloor', t, st); continue; }
         if (gr.news_filter.enabled) {
-          const n = newsBlock(t, news, beforeMin, afterMin);
+          const n = newsBlock(t, newsWin, beforeMin, afterMin);
           if (n) { bump('news'); logBlock('news', t, st); if (st.levelKey) consumeLevel(st.strategy, st.levelKey); cancelIds.add(st.id); continue; }
         }
         // القاعدة 15: حظر أول 30 دقيقة من افتتاح يوم التداول (01:00 دمشق)

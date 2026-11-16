@@ -21,6 +21,7 @@
 import { mt5Feed } from './mt5feed';
 import type { Candle } from '@/lib/engine/types';
 import { TF_MS } from '@/lib/engine/types';
+import { SYRIA_OFFSET_MS } from '@/lib/engine/sessions';
 import {
   loadData, resetEngineCache, runBacktest,
   snapshotEngine, adoptEngine,
@@ -34,6 +35,24 @@ const MIN_5M_WINDOW = 250;   // أقل عدد شموع 5m داخل النافذ�
 const WARMUP_MS = 180 * 86400e3; // تسخين 180 يوماً قبل بداية النافذة (مطابق للنسخة السابقة)
 const OPEN_TTL_MS = 90_000;  // صلاحية كاش الفترات المفتوحة
 const MAX_MEMOS = 8;         // سقف اللقطات المحفوظة (كل لقطة ~10-20MB)
+
+// ---------- مثبتات نافذة الباك تيست (استقرار الأرقام) ----------
+// جذر تقلّب الأرباح تلقائياً (7000→2000): نافذة «كل التاريخ» كانت تُبنى من
+// أول شمعة متاحة وآخر شمعة واصلة — كلاهما يتحرك مع إعادة سحب الجسر، وعمق
+// التاريخ في الطرفية، وكل شمعة 5m جديدة. من الآن:
+//   • بداية «كل التاريخ» مثبتة على مرساة سحب الجسر الرسمية (2025-01-01)
+//     أو أول شمعة متاحة إن كانت أبعد — لا تتأثر بإعادة السحب نفسها.
+//   • نهاية أي نافذة = آخر يوم سوري «مكتمل» — الشمعة الجارية واليوم
+//     غير المكتمل يُستبعدان، فالرقم ثابت طوال اليوم ولا يدخل إلى الحساب
+//     شمعة نصف مكتملة ولا حدث أخبار مؤرخ في المستقبل.
+const HISTORY_ANCHOR_MS = Date.UTC(2025, 0, 1);
+
+/** نهاية آخر يوم سوري مكتمل داخل البيانات (بالمللي ثانية UTC) */
+function lastClosedSyriaDayEnd(lastT: number): number {
+  const dayStart = Math.floor((lastT + SYRIA_OFFSET_MS) / 86400e3) * 86400e3 - SYRIA_OFFSET_MS;
+  const dayFullyCovered = lastT + TF_MS['5m'] <= dayStart + 86400e3;
+  return dayFullyCovered ? dayStart + 86400e3 : dayStart;
+}
 
 interface MemoEntry {
   snap: EngineSnapshot;
@@ -70,11 +89,12 @@ export function resolveWindow(year: number | null, fromYear?: number | null, toY
   const c5 = (mt5Feed().tfs['5m'] ?? []) as Candle[];
   if (!c5.length) return null;
   const lastT = c5[c5.length - 1].t;
+  const closedEnd = lastClosedSyriaDayEnd(lastT);
   const curYearStart = Date.UTC(new Date().getUTCFullYear(), 0, 1);
   let start: number, end: number;
-  if (year !== null) { start = Date.UTC(year, 0, 1); end = Math.min(Date.UTC(year + 1, 0, 1) - 1, lastT + 300e3); }
-  else if (fromYear != null && toYear != null) { start = Date.UTC(fromYear, 0, 1); end = Math.min(Date.UTC(toYear + 1, 0, 1) - 1, lastT + 300e3); }
-  else { start = c5[0].t; end = lastT + 300e3; } // كل التاريخ
+  if (year !== null) { start = Date.UTC(year, 0, 1); end = Math.min(Date.UTC(year + 1, 0, 1) - 1, closedEnd); }
+  else if (fromYear != null && toYear != null) { start = Date.UTC(fromYear, 0, 1); end = Math.min(Date.UTC(toYear + 1, 0, 1) - 1, closedEnd); }
+  else { start = Math.max(c5[0].t, HISTORY_ANCHOR_MS); end = closedEnd; } // كل التاريخ: مثبت على مرساة 2025-01-01 حتى آخر يوم مكتمل
   if (end <= start) return null;
   return {
     fromT: start - WARMUP_MS,
