@@ -12,6 +12,13 @@ pause
 exit /b 1
 :srv_ok
 
+rem --- حارس التشغيل المزدوج: إن كان الخادم يعمل أصلاً لا تشغّله ثانية ---
+netstat -ano 2>nul | findstr /C:":3000 " | findstr /C:"LISTENING" >nul 2>&1 && (
+  echo الناسخ يعمل أصلاً على المنفذ 3000 — إن أردت إعادة تشغيله: دبل كليك 3-STOP.bat ثم أعد هذا الملف.
+  pause
+  exit /b 1
+)
+
 set "PATH=%ROOT%\runtime\node;%PATH%"
 set "NODE_ENV=production"
 set "PORT=3000"

@@ -17,11 +17,7 @@ if exist "%ROOT%\tunnel-config.txt" (
 
 if defined NGROK_TOKEN if defined NGROK_DOMAIN goto ngrok
 
-echo ============================================================
-echo   وضع النفق السريع المؤقت — الرابط يتغير مع كل تشغيل
-echo   للرابط الدائم الثابت: املأ tunnel-config.txt بحساب ngrok
-echo   المجاني (الخطوات في README-LAPTOP.txt)
-echo ============================================================
+rem ==================== النفق السريع المؤقت ====================
 if not exist "%ROOT%\cloudflared.exe" (
   echo تنزيل أداة النفق cloudflared...
   powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol='Tls12'; Invoke-WebRequest -Uri 'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe' -OutFile 'cloudflared.exe' -UseBasicParsing"
@@ -32,16 +28,40 @@ if not exist "%ROOT%\cloudflared.exe" (
   exit /b 1
 )
 :cf_loop
+del /q "%ROOT%\tunnel.log" 2>nul
+start "BFX TUNNEL CORE" /min cmd /c ""%ROOT%\cloudflared.exe" tunnel --url http://localhost:3000 --protocol http2 > "%ROOT%\tunnel.log" 2>&1"
 echo.
-echo   سيظهر الرابط المؤقت بهذا الشكل:  https://xxxx-xxxx.trycloudflare.com
-echo   انسخ السطر الذي يبدأ بـ https وينتهي بـ trycloudflare.com
-echo   وأرسله لأصدقائك مع كلمة سر الموقع.
+echo في انتظار إنشاء الرابط — من 10 إلى 40 ثانية، لا تغلق هذه النافذة...
+:wait_link
+timeout /t 5 /nobreak >nul
+if not exist "%ROOT%\tunnel.log" goto wait_link
+set "URL="
+for /f "usebackq tokens=1-6 delims=| " %%A in (`findstr /C:"trycloudflare.com" "%ROOT%\tunnel.log"`) do (
+  for %%T in (%%A %%B %%C %%D %%E %%F) do (
+    set "W=%%T"
+    if "!W:~0,8!"=="https://" set "URL=!W!"
+  )
+)
+if not defined URL goto wait_link
+echo !URL!>"%ROOT%\THE-LINK.txt"
+copy /y "%ROOT%\THE-LINK.txt" "%USERPROFILE%\Desktop\BFX-LINK.txt" >nul 2>&1
+type "%ROOT%\THE-LINK.txt" | clip
+:show_loop
+cls
+echo ============================================================
+echo   رابط الناسخ لأصدقائك — نُسخ إلى الحافظة تلقائياً
+echo   وملف BFX-LINK.txt وُضع على سطح المكتب:
 echo.
-"%ROOT%\cloudflared.exe" tunnel --url http://localhost:3000 --protocol http2
-echo النفق توقف — إعادة تشغيل بعد 15 ثانية (قد يتغير الرابط)...
-timeout /t 15 /nobreak >nul
-goto cf_loop
+echo   !URL!
+echo.
+echo   أرسل الرابط مع كلمة سر الموقع: black hat
+echo   هذه النافذة يجب أن تبقى مفتوحة والرابط يتجدد عند إعادة التشغيل
+echo ============================================================
+timeout /t 20 /nobreak >nul
+tasklist /fi "imagename eq cloudflared.exe" 2>nul | find /i "cloudflared.exe" >nul || goto cf_loop
+goto show_loop
 
+rem ==================== النفق الدائم الثابت ngrok ====================
 :ngrok
 if not exist "%ROOT%\ngrok.exe" (
   echo تنزيل ngrok...
@@ -55,11 +75,20 @@ if not exist "%ROOT%\ngrok.exe" (
   goto cf_loop
 )
 "%ROOT%\ngrok.exe" config add-authtoken !NGROK_TOKEN! >nul 2>&1
+set "URL=https://!NGROK_DOMAIN!"
+echo !URL!>"%ROOT%\THE-LINK.txt"
+copy /y "%ROOT%\THE-LINK.txt" "%USERPROFILE%\Desktop\BFX-LINK.txt" >nul 2>&1
+type "%ROOT%\THE-LINK.txt" | clip
 :ngrok_loop
+cls
+echo ============================================================
+echo   الرابط الدائم الثابت لأصدقائك — نُسخ إلى الحافظة تلقائياً
+echo   وملف BFX-LINK.txt وُضع على سطح المكتب:
 echo.
-echo   الرابط الدائم الثابت لأصدقائك:  https://!NGROK_DOMAIN!
-echo   أرسله مع كلمة سر الموقع — لن يتغير أبداً.
+echo   !URL!
 echo.
+echo   أرسله مع كلمة سر الموقع: black hat — لن يتغير أبداً
+echo ============================================================
 "%ROOT%\ngrok.exe" http --url=!NGROK_DOMAIN! 3000
 echo النفق توقف — إعادة تشغيل بعد 15 ثانية (الرابط الثابت لا يتغير)...
 timeout /t 15 /nobreak >nul

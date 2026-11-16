@@ -27,7 +27,7 @@
 | `prisma/schema.prisma` + `db/` | SQLite | Dockerfile ينشئ قاعدة **فارغة** كل نشر |
 | `scripts/` (هذا المستودع) | `test_bridge_cache.py` وغيرها | اختبارات الجسر وملفات البحث |
 | `scripts/copy-standalone.js` | نسخ cross-platform | يعوض أوامر cp في البناء — يكتشف موقع server.js في standalone (جذر أو متداخل) |
-| `public/laptop/` | `1-INSTALL.bat` `2-START.bat` `5-UPDATE.bat` `3-STOP.bat` `4-AUTOSTART.bat` `START-BRIDGE-LOCAL.bat` `START-TUNNEL.bat` `README-LAPTOP.txt` | **حزمة النشر على حاسوب المالك** — التثبيت والتشغيل والتحديث والنفق العام للرابط |
+| `public/laptop/` | `ONE-CLICK.bat` `1-INSTALL.bat` `2-START.bat` `5-UPDATE.bat` `3-STOP.bat` `4-AUTOSTART.bat` `START-BRIDGE-LOCAL.bat` `START-TUNNEL.bat` `README-LAPTOP.txt` | **حزمة النشر على حاسوب المالك** — `ONE-CLICK.bat` أمر واحد شامل (تنزيل + تثبيت تلقائي بوضع `auto` + تشغيل)، والنفق يستخرج الرابط إلى `BFX-LINK.txt` على سطح المكتب وينسخه للحافظة |
 
 ## 3) دستور التداول — خطوط حمراء لا يمسّها أي وكيل بلا أمر صريح من المالك
 
