@@ -11,7 +11,11 @@
     "db:push": "prisma db push --accept-data-loss",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "test:tamsa": "bun run tests/tamsa-engine.test.ts && bun run tests/tamsa-model.test.ts && bun run tests/tamsa-integration.test.ts",
+    "test:tamsa:engine": "bun run tests/tamsa-engine.test.ts",
+    "test:tamsa:model": "bun run tests/tamsa-model.test.ts",
+    "test:tamsa:integration": "bun run tests/tamsa-integration.test.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

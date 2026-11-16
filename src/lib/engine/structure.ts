@@ -285,3 +285,263 @@ export function findFibAnchors(c: Candle[], tf: TF, ratios: number[]): FibAnchor
 export function fibLevel(a: FibAnchor, ratio: number): number {
   return a.dir === 'up' ? a.high - (a.high - a.low) * ratio : a.low + (a.high - a.low) * ratio;
 }
+
+// ============================================================
+// بروتوكول تأكيد الاتجاه بأربع نقاط — Four-Points Trend Confirmation
+// ------------------------------------------------------------
+// صاعد : LL → HH → HL → HH
+// هابط : HH → LL → LH → LL
+//
+// لماذا «تتابع» لا «نافذة متصلة»:
+//   محرك الهيكل يعتمد المحاور الحقيقية عند الكسر، فيظهر عند انعكاس
+//   الاتجاه الهابط→الصاعد تتابعٌ مثل: LL → LH → HH → HL → HH.
+//   اشتراط أربعة محاور متلاصقة يُلغي الاعتماد تماماً في هذه الحالة،
+//   فيصبح البروتوكول حبراً على ورق. لذلك يُطابق النمط كـ«تتابع جزئي»
+//   مع سقف صريح لعدد المحاور الوسيطة (gap) — يبقى متلاصقاً فعلياً
+//   لكنه لا ينكسر بسبب محور تصحيحي واحد بين LL وHH.
+//
+// الشروط الرقمية (تمنع الأوسمة الكاذبة):
+//   صاعد: HH2 > LL1 ،  LL1 < HL3 < HH2 ،  HH4 > HH2
+//   هابط: LL2 < HH1 ،  LL2 < LH3 < HH1 ،  LL4 < LL2
+//
+// صلاحية الاعتماد (لا يُعتمد نمط ميت):
+//   • يُبطل فوراً إذا تكون محور مضاد بعد النقطة الرابعة (LL بعد صاعد / HH بعد هابط)
+//   • يُسقط إذا تجاوز عمره maxTrailing محوراً
+//
+// لا تسلل مستقبلي: لا يُعتد بمحور قبل confirmedAt الخاص به.
+// هذا الملف ملحق لـ structure.ts — لا يمس أي دالة قائمة.
+// ============================================================
+
+export interface FourPoint {
+  price: number;
+  t: number;
+  type: RealKind;
+  confirmedAt: number;
+}
+
+export interface FourPointsConfirmation {
+  /** اكتمل النمط بالأرقام المطلوبة وما زال ساري المفعول */
+  confirmed: boolean;
+  /** الاتجاه المؤكَّد — 'range' حين لا تأكيد */
+  trend: Dir;
+  points?: { p1: FourPoint; p2: FourPoint; p3: FourPoint; p4: FourPoint };
+  /** لحظة اكتمال النمط (تأكيد النقطة الرابعة) */
+  confirmedAt?: number;
+  /** جودة البنية 0..1 — نسبة شروط الأسعار المتحققة */
+  score: number;
+  /** عدد المحاور التي تكوّنت بعد النقطة الرابعة (0 = النمط هو الأحدث تماماً) */
+  trailing: number;
+  /** هل أُبطل النمط بكسر بنيوي مضاد بعد النقطة الرابعة؟ */
+  invalidated: boolean;
+  /** عدد المحاور الوسيطة التي تجاوزها المطابق (0 = متلاصق تماماً) */
+  gaps: number;
+  /** المفتاح التسلسلي للنمط — يمنع اعتماد النمط نفسه مرتين */
+  key?: string;
+  reason: string;
+}
+
+export interface FourPointsOptions {
+  /** أقل جودة أسعار مقبولة (0..1) — الافتراضي 1 (كل الشروط الرقمية) */
+  minScore?: number;
+  /** أقصى عدد محاور مسموح أن تتكوّن بعد النقطة الرابعة قبل إسقاط الاعتماد.
+   *  الافتراضي 12 — يسمح باستمرار الاتجاه بعد النمط مع منع الاعتماد على نمط قديم جداً. */
+  maxTrailing?: number;
+  /** أقصى عدد محاور وسيطة بين نقاط النمط (افتراضي 2) */
+  maxGap?: number;
+  /** أقصى عدد محاور يُبحث فيها عن النمط (افتراضي 40) */
+  lookback?: number;
+  /** فريم التحقق — يُرشّح المحاور (اختياري) */
+  tf?: TF;
+  /** لحظة القطع (للباكتيست) — لا يُستخدم أي محور تأكد بعدها */
+  asOf?: number;
+}
+
+const UP_PATTERN: RealKind[] = ['LL', 'HH', 'HL', 'HH'];
+const DOWN_PATTERN: RealKind[] = ['HH', 'LL', 'LH', 'LL'];
+
+/** شروط الأسعار للنمط الصاعد (0..3) */
+function upPriceChecks(p: FourPoint[]): number {
+  let ok = 0;
+  if (p[1].price > p[0].price) ok++;                            // HH2 فوق LL1
+  if (p[2].price > p[0].price && p[2].price < p[1].price) ok++;  // HL3 بين LL1 و HH2
+  if (p[3].price > p[1].price) ok++;                            // HH4 فوق HH2
+  return ok;
+}
+
+/** شروط الأسعار للنمط الهابط (0..3) */
+function downPriceChecks(p: FourPoint[]): number {
+  let ok = 0;
+  if (p[1].price < p[0].price) ok++;                            // LL2 تحت HH1
+  if (p[2].price < p[0].price && p[2].price > p[1].price) ok++;  // LH3 بين LL2 و HH1
+  if (p[3].price < p[1].price) ok++;                            // LL4 تحت LL2
+  return ok;
+}
+
+/**
+ * مطابقة تتابع جزئي: يبحث عن pattern بالترتيب مع سماح بمحاور وسيطة ≤ maxGap.
+ * يعيد مؤشرات النقاط المطابقة أو null.
+ */
+function matchSubsequence(kinds: RealKind[], pattern: RealKind[], maxGap: number): number[] | null {
+  const pos: number[] = [];
+  let cursor = 0;
+  for (let k = 0; k < pattern.length; k++) {
+    let found = -1;
+    let skipped = 0;
+    for (let j = cursor; j < kinds.length; j++) {
+      if (kinds[j] === pattern[k]) { found = j; break; }
+      // المحاور الوسيطة المسموحة تُحسب فقط بين النقاط (لا قبل الأولى)
+      if (k > 0 && ++skipped > maxGap) break;
+    }
+    if (found < 0) return null;
+    pos.push(found);
+    cursor = found + 1;
+  }
+  return pos;
+}
+
+/**
+ * فحص نمط أربع نقاط على قائمة محاور حقيقية معتمدة.
+ * يعتمد أحدث نمط ساري المفعول (لم يُبطل بكسر بنيوي مضاد).
+ */
+export function confirm4Points(
+  realPivots: RealPivot[],
+  currentTrend: Dir,
+  opts: FourPointsOptions = {},
+): FourPointsConfirmation {
+  const minScore = opts.minScore ?? 1;
+  const maxTrailing = opts.maxTrailing ?? 12;
+  const maxGap = Math.max(0, opts.maxGap ?? 2);
+  const lookback = Math.max(4, opts.lookback ?? 40);
+  const asOf = opts.asOf ?? Infinity;
+
+  const none = (reason: string, extra: Partial<FourPointsConfirmation> = {}): FourPointsConfirmation => ({
+    confirmed: false, trend: 'range', score: 0, trailing: 0, invalidated: false, gaps: 0, reason, ...extra,
+  });
+
+  // تطبيع إلى تعرّج متناوب نظيف (zigzag).
+  // محرك الهيكل الأساسي يعيد إصدار المحور نفسه عند كل شريط يكسر المستوى
+  // (سجل حقيقي: 332 محوراً لـ177 نقطة سعرية فقط)، فيصير التتابع
+  // HH,HH,HH… بدل HH,HL,HH. التطبيع التالي لا يغيّر أي محور —
+  // بل يُسقط التكرار ويطوي المتتالي من النوع نفسه إلى طرفه الأقصى.
+  const isHigh = (k: RealKind) => k === 'HH' || k === 'LH';
+  const seenKey = new Set<string>();
+  const ordered = realPivots
+    .filter(p => p.confirmedAt <= asOf && (!opts.tf || p.tf === opts.tf))
+    .slice()
+    .sort((a, b) => (a.confirmedAt - b.confirmedAt) || (a.t - b.t))
+    .filter(p => {
+      const k = `${p.kind}:${p.t}:${p.price}`;
+      if (seenKey.has(k)) return false;
+      seenKey.add(k);
+      return true;
+    });
+
+  const pool: RealPivot[] = [];
+  for (const p of ordered) {
+    const last = pool[pool.length - 1];
+    if (last && isHigh(last.kind) === isHigh(p.kind)) {
+      // نفس النوع: نُبقي الأقصى (أعلى قمة أو أدنى قاع) مع أحدث تأكيد
+      const keepNew = isHigh(p.kind) ? p.price >= last.price : p.price <= last.price;
+      if (keepNew) pool[pool.length - 1] = p;
+      continue;
+    }
+    pool.push(p);
+  }
+
+  if (pool.length < 4) {
+    return none(`محاور غير كافية: ${pool.length}/4 — لا يمكن تأكيد أي نمط`);
+  }
+
+  const tail = pool.slice(Math.max(0, pool.length - lookback));
+  const kinds = tail.map(p => p.kind);
+
+  // جرّب كل نقطة انطلاق ممكنة من الأحدث بحثاً عن أول نمط مستوفٍ للأسعار
+  type Hit = { start: number; pos: number[]; trend: Dir; pts: FourPoint[]; score: number; gaps: number };
+  let hit: Hit | null = null;
+
+  for (const [pattern, trend] of [[UP_PATTERN, 'up'], [DOWN_PATTERN, 'down']] as [RealKind[], Dir][]) {
+    // نجرّب الانطلاق من كل موضع يحتوي النقطة الأولى، من الأحدث للأقدم
+    for (let s = tail.length - 4; s >= 0; s--) {
+      if (kinds[s] !== pattern[0]) continue;
+      const sub = matchSubsequence(kinds.slice(s), pattern, maxGap);
+      if (!sub) continue;
+
+      const idxs = sub.map(x => s + x);
+      const pts: FourPoint[] = idxs.map(i => ({
+        price: tail[i].price, t: tail[i].t, type: tail[i].kind, confirmedAt: tail[i].confirmedAt,
+      }));
+      const checks = trend === 'up' ? upPriceChecks(pts) : downPriceChecks(pts);
+      const score = checks / 3;
+      if (score < minScore) continue;
+
+      // الوسيط الفعلي = المحاور غير المستخدمة بين النقطة الأولى والأخيرة
+      const span = idxs[3] - idxs[0] + 1;
+      const gaps = span - 4;
+
+      if (!hit || idxs[3] > hit.pos[3] || (idxs[3] === hit.pos[3] && score > hit.score)) {
+        hit = { start: s, pos: idxs, trend, pts, score, gaps };
+      }
+      break; // أول مطابقة من هذه البداية كافية
+    }
+  }
+
+  if (!hit) {
+    return none(
+      `لا يوجد نمط ${UP_PATTERN.join('→')} ولا ${DOWN_PATTERN.join('→')}` +
+      ` في آخر ${tail.length} محور (الاتجاه المرصود: ${currentTrend}) — التتابع: ${kinds.slice(-6).join('→') || '—'}`,
+    );
+  }
+
+  const after = tail.slice(hit.pos[3] + 1);
+  const trailing = after.length;
+
+  // إبطال بنيوي: بعد النمط الصاعد يكسر LL الاعتماد؛ وبعد الهابط يكسر HH
+  const invalidated = hit.trend === 'up'
+    ? after.some(p => p.kind === 'LL')
+    : after.some(p => p.kind === 'HH');
+
+  const base: FourPointsConfirmation = {
+    confirmed: true,
+    trend: hit.trend,
+    points: { p1: hit.pts[0], p2: hit.pts[1], p3: hit.pts[2], p4: hit.pts[3] },
+    confirmedAt: hit.pts[3].confirmedAt,
+    score: hit.score,
+    trailing,
+    invalidated,
+    gaps: hit.gaps,
+    key: `4P:${hit.trend}:${hit.pts[0].t}:${hit.pts[3].t}`,
+    reason: '',
+  };
+
+  base.reason =
+    `تأكيد ${hit.trend === 'up' ? 'صاعد' : 'هابط'} بأربع نقاط: ` +
+    `${hit.pts.map(p => p.type).join(' → ')} (جودة ${(hit.score * 100).toFixed(0)}%` +
+    `${hit.gaps ? `، ${hit.gaps} محور وسيط` : ''}` +
+    `، ${trailing === 0 ? 'النمط هو الأحدث' : `تأخّر ${trailing} محور`})`;
+
+  if (invalidated) {
+    return { ...base, confirmed: false, reason: `${base.reason} — أُبطل بكسر بنيوي مضاد بعد النقطة الرابعة` };
+  }
+  if (trailing > maxTrailing) {
+    return {
+      ...base, confirmed: false,
+      reason: `${base.reason} — تجاوز عمر النمط المسموح (${trailing} > ${maxTrailing} محور)`,
+    };
+  }
+  return base;
+}
+
+/** نسخة الباكتيست: التحقق كما كان معلوماً في لحظة زمنية محددة (بلا تسلل) */
+export function fourPointsAsOf(
+  realPivots: RealPivot[],
+  at: number,
+  currentTrend: Dir = 'range',
+  opts: FourPointsOptions = {},
+): FourPointsConfirmation {
+  return confirm4Points(realPivots, currentTrend, { ...opts, asOf: at });
+}
+
+/** تتابع المحاور الأخير كنص — للتشخيص في الواجهة */
+export function pivotSequence(realPivots: RealPivot[], n = 6): string {
+  return realPivots.slice(-n).map(p => p.kind).join(' → ');
+}
