@@ -1,0 +1,8 @@
+# الرابط الدائم الثابت — انسخ هذا الملف وأعد تسميته: tunnel-config.txt ثم املأ السطرين
+# الخطوات (مجاني بلا بطاقة ائتمان، 3 دقائق):
+# 1) سجل حساباً مجانياً: https://dashboard.ngrok.com/signup
+# 2) انسخ التوكن من: https://dashboard.ngrok.com/get-started/your-authtoken
+# 3) اضغط New Domain في: https://dashboard.ngrok.com/domains — يمنحك رابطاً مثل xxxx.ngrok-free.app
+# 4) ضع القيمتين هنا (بلا مسافات) ثم أعد تشغيل 2-START.bat
+NGROK_AUTHTOKEN=ضع_التوكن_هنا
+NGROK_DOMAIN=ضع_الدومين_هنا

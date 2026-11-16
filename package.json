@@ -5,7 +5,7 @@
   "description": "BFX AURUM v18 PRO - Gold XAUUSD trading bot. Restore keywords: AURUM-771 DOSTOR-XAU BRIDGE-V21 => read SESSION-CONTEXT.md first",
   "scripts": {
     "dev": "next dev -p 3000 2>&1 | tee dev.log",
-    "build": "next build && cp -r .next/static .next/standalone/.next/ && cp -r public .next/standalone/ || true",
+    "build": "next build && node scripts/copy-standalone.js",
     "start": "NODE_ENV=production bun .next/standalone/server.js 2>&1 | tee server.log",
     "lint": "eslint .",
     "db:push": "prisma db push --accept-data-loss",
