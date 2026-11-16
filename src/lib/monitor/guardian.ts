@@ -20,6 +20,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { db } from '@/lib/db';
 import { DEFAULT_SETTINGS } from '@/lib/engine/rules';
+import { settingsSeedRaw } from '@/lib/server/seedSettings';
 import { buildForecast } from '@/lib/engine/forecast';
 import { getEngineData } from '@/lib/server/data';
 import { mt5Feed, forceWriteSnapshot, MT5_FRESH_MS } from '@/lib/server/mt5feed';
@@ -277,22 +278,30 @@ class Guardian {
     }
   }
 
-  /** 4) إعدادات البوت — كشف التلف واستعادة الافتراضيات تلقائياً */
+  /** 4) إعدادات البوت — كشف الغياب/التلف واستعادة البذرة المعتمدة تلقائياً */
   private async checkSettings(): Promise<CheckResult> {
     const t0 = Date.now();
     const mk = (status: CheckStatus, detail: string): CheckResult =>
       ({ id: 'settings', label: 'إعدادات البوت', status, detail, ms: Date.now() - t0 });
     try {
+      // الإصلاح يزرع البذرة المعتمدة (db/settings-seed.json) لا الافتراضيات —
+      // سباق الإقلاع على Render: لو سبق الحارس أول قراءة إعدادات كان يزرع
+      // DEFAULT_SETTINGS (8 استراتيجيات) بدل البذرة المعتمدة (10: A,AA,E,F,H,K,L,M,N,X)
+      // فتختلف نتيجة الباك تيست من نشر لآخر بصمت. البذرة أولى دائماً.
+      const seedRaw = settingsSeedRaw();
+      const restoreJson = seedRaw ?? JSON.stringify(DEFAULT_SETTINGS);
+      const fromSeed = seedRaw !== null;
+      const restoreMsg = fromSeed ? 'البذرة المعتمدة' : 'الإعدادات الافتراضية';
       const row = await db.botSettings.findUnique({ where: { key: 'main' } });
       if (!row) {
         await db.botSettings.upsert({
           where: { key: 'main' },
-          create: { key: 'main', json: JSON.stringify(DEFAULT_SETTINGS) },
-          update: { json: JSON.stringify(DEFAULT_SETTINGS) },
+          create: { key: 'main', json: restoreJson },
+          update: { json: restoreJson },
         });
         this.fixes++;
-        this.event('fix', 'الإعدادات', 'لم تكن موجودة — أُنشئت بالإعدادات الافتراضية تلقائياً');
-        return mk('ok', 'كانت مفقودة — أُنشئت بالافتراضيات تلقائياً');
+        this.event('fix', 'الإعدادات', `لم تكن موجودة — زُرعت ${restoreMsg} تلقائياً`);
+        return mk('ok', `كانت مفقودة — زُرعت ${restoreMsg} تلقائياً`);
       }
       try {
         const parsed = JSON.parse(row.json) as Record<string, unknown>;
@@ -307,12 +316,12 @@ class Guardian {
       } catch {
         await db.botSettings.upsert({
           where: { key: 'main' },
-          create: { key: 'main', json: JSON.stringify(DEFAULT_SETTINGS) },
-          update: { json: JSON.stringify(DEFAULT_SETTINGS) },
+          create: { key: 'main', json: restoreJson },
+          update: { json: restoreJson },
         });
         this.fixes++;
-        this.event('critical', 'الإعدادات', 'كانت الإعدادات المحفوظة تالفة — استُعيدت الإعدادات الافتراضية تلقائياً لمنع توقف البوت');
-        return mk('ok', 'كانت تالفة — استُعيدت الافتراضيات تلقائياً');
+        this.event('critical', 'الإعدادات', `كانت الإعدادات المحفوظة تالفة — استُعيدت ${restoreMsg} تلقائياً لمنع توقف البوت`);
+        return mk('ok', `كانت تالفة — استُعيدت ${restoreMsg} تلقائياً`);
       }
     } catch (e) {
       return mk('fail', `تعذر فحص الإعدادات: ${String(e).slice(0, 100)}`);

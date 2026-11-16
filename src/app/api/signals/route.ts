@@ -4,10 +4,9 @@ import { getEngineData, getDataStatus } from '@/lib/server/data';
 import { runBacktest, marketStateNow } from '@/lib/engine/backtest';
 import { loadBotSettings, loadRealNews } from '@/lib/server/backtestRunner';
 import { currentSession, syriaHour, syriaDayNum, SYRIA_OFFSET_MS } from '@/lib/engine/sessions';
-import { STRATEGY_NAMES, BASKET_IDS } from '@/lib/engine/types';
+import { STRATEGY_NAMES } from '@/lib/engine/types';
 import { getAiSupervision, aiSupervisionReady } from '@/lib/server/aiSupervisor';
 import { mt5Feed } from '@/lib/server/mt5feed';
-import { computeAutoDecisions, applyAutoDecisions, buildReport } from '@/lib/engine/autoManager';
 import { publishEngineLog, BLOCK_REASON_LABELS } from '@/lib/engine/constitution';
 import { pushAlert } from '@/lib/server/alerts';
 
@@ -81,98 +80,13 @@ export async function GET() {
     window: `الفترة الكاملة للبيانات الحقيقية (${new Date(result.stats.startT + 3 * 3600e3).toISOString().slice(0, 10)} ← ${new Date(result.stats.endT + 3 * 3600e3).toISOString().slice(0, 10)})`,
   });
 
-  // ---- المدير الآلي الذاتي — وضع الاستشارة افتراضياً (تثبيت أرقام الباك تيست) ----
-  // الجذر الثاني لتقلّب الأرباح تلقائياً (7000→2000): هذا المسار كان يعيد كتابة
-  // الإعدادات المحفوظة يومياً (تعطيل/تفعيل استراتيجيات + قتل جلسات + دورة تجريبية
-  // كل 45 يوماً) صامتاً بلا موافقة، فتتغير نتيجة الباك تيست التي يراها المالك من
-  // دون سبب ظاهر. من الآن:
-  // • التقييم يجري مرة كل يوم سوري كما كان، لكن القرارات تُوثَّق في تقرير
-  //   المدير الآلي (نفس مفتاح /api/automanager) وتُبلَّغ تنبيهاً فقط —
-  //   ولا تُكتب على الإعدادات المحفوظة إطلاقاً افتراضياً.
-  // • التطبيق الفعلي يتطلب موافقة صريحة: متغير البيئة AUTO_MANAGER_APPLY=1
-  //   (على Render) أو state.applyEnabled=true المحفوظ من زر التفعيل.
-  // • الإعدادات لا تتغير → الباك تيست لا يتغير → الأرقام ثابتة طوال اليوم.
-  try {
-    const stateRow = await db.botSettings.findUnique({ where: { key: 'autoManager' } });
-    const state = stateRow
-      ? (JSON.parse(stateRow.json) as { lastRunDay?: string; disabledAt?: Record<string, number>; probationSince?: Record<string, number>; applyEnabled?: boolean })
-      : { lastRunDay: '', disabledAt: {}, probationSince: {} };
-    const disabledAt: Record<string, number> = state.disabledAt ?? {};
-    const probationSince: Record<string, number> = state.probationSince ?? {};
-    state.disabledAt = disabledAt;
-    state.probationSince = probationSince;
-    const applyEnabled = process.env.AUTO_MANAGER_APPLY === '1' || state.applyEnabled === true;
-    const todayKey = new Date(Date.now() + 3 * 3600e3).toISOString().slice(0, 10);
-    if (state.lastRunDay !== todayKey) {
-      const currentEnabled: Record<string, boolean> = {};
-      for (const [k, v] of Object.entries(settings.strategyParams as unknown as Record<string, { enabled?: boolean }>)) {
-        currentEnabled[k] = v?.enabled !== false;
-      }
-      const nowMs = Date.now();
-      const PROBATION_MS = 45 * 86400e3;
-      const WINDOW_MS = 90 * 86400e3;
-      const allTrades = result.trades as unknown as { strategy: string; session: string; pnl: number; result: string; entryT?: number }[];
-
-      // 1) الدورة التجريبية (تطبيق فقط): إعادة تشغيل المعطلة التي مضى على تعطيلها 45 يوماً
-      // (مكوّنات السلة المعتمدة W/X/Y/AA مستثناة حصراً — مسارها الظلي المستقل
-      //  لا يديره المدير الآلي ولا يعاد تفعيلها في المحرك الحي مهما مرّ الوقت)
-      const probationNotes: string[] = [];
-      if (applyEnabled) {
-        for (const [st, ts] of Object.entries(disabledAt)) {
-          if (BASKET_IDS.includes(st as never)) continue;
-          if (!currentEnabled[st] && nowMs - ts >= PROBATION_MS) {
-            const node = (settings.strategyParams as unknown as Record<string, { enabled?: boolean }> | undefined)?.[st];
-            if (node) node.enabled = true;
-            probationSince[st] = nowMs;
-            delete disabledAt[st];
-            probationNotes.push(st);
-          }
-        }
-      }
-
-      // 2) التقييم على النافذة الحديثة — المعطلة تُستثنى، والمحتومة التجريبية تُقيَّم على صفقات ما بعد إعادتها فقط
-      const evaluate = allTrades.filter(t => {
-        const et = t.entryT ?? 0;
-        if (et < nowMs - WINDOW_MS) return false;
-        const stt = t.strategy;
-        if (!currentEnabled[stt] && !probationSince[stt]) return false;
-        if (probationSince[stt] && et < probationSince[stt]) return false;
-        return true;
-      });
-      const { decisions, enable, sessionKills } = computeAutoDecisions(evaluate, { currentEnabled });
-      const toDisable = decisions.filter(d => d.kind === 'disable-strategy');
-      const toEnable = decisions.filter(d => d.kind === 'enable-strategy');
-
-      if (applyEnabled) {
-        const merged = applyAutoDecisions(settings, [...toDisable, ...toEnable], sessionKills);
-        for (const d of toDisable) { disabledAt[d.strategy] = nowMs; delete probationSince[d.strategy]; }
-        // من نجحت دورته التجريبية بعينة كافية يخرج من الحالة التجريبية
-        for (const d of toEnable) delete probationSince[d.strategy];
-        await db.botSettings.upsert({
-          where: { key: 'main' },
-          create: { key: 'main', json: JSON.stringify({ ...settings }) },
-          update: { json: JSON.stringify({ ...merged }) },
-        });
-      }
-
-      // توثيق يومي موحّد: تقرير القرارات في نفس مفتاح /api/automanager (وضع الاستشارة يوثّق فقط)
-      const report = buildReport(evaluate, [...toDisable, ...toEnable], enable, {
-        from: result.stats.startT ? new Date(result.stats.startT).toISOString() : undefined,
-        to: result.stats.endT ? new Date(result.stats.endT).toISOString() : undefined,
-      }, applyEnabled ? 'self-auto' : 'advisory-frozen');
-      state.lastRunDay = todayKey;
-      await db.botSettings.upsert({
-        where: { key: 'autoManager' },
-        create: { key: 'autoManager', json: JSON.stringify({ ...state, report }) },
-        update: { key: 'autoManager', json: JSON.stringify({ ...state, report }) },
-      });
-      if (toDisable.length || toEnable.length || probationNotes.length || Object.keys(sessionKills).length) {
-        pushAlert('auto', applyEnabled ? 'قرار المدير الآلي الذاتي' : 'اقتراح المدير الآلي (معلّق — بحاجة موافقتك)',
-          `تعطيل: ${toDisable.map(d => d.strategy).join('، ') || 'لا شيء'}\nتفعيل: ${toEnable.map(d => d.strategy).join('، ') || 'لا شيء'}\nدورة تجريبية: ${probationNotes.join('، ') || 'لا شيء'}\nقتل جلسات: ${Object.keys(sessionKills).length}\nالتقييم على نافذة 90 يوماً${applyEnabled ? '' : '\n(وضع التثبيت: الإعدادات لم تُمس — فعّل التطبيق من AUTO_MANAGER_APPLY=1 إن أردت التنفيذ التلقائي)'}`,
-          `auto:${todayKey}`);
-      }
-    }
-  } catch { /* القرار الذاتي لا يعطل الإشارات أبداً */ }
+  // ---- المدير الآلي الصامت: محذوف نهائياً بأمر المالك (2026-11-16) ----
+  // الكتلة التي كانت هنا تقيّم الاستراتيجيات مرة كل يوم سوري وتعيد كتابة
+  // الإعدادات المحفوظة صامتاً (تعطيل/تفعيل + قتل جلسات + دورة تجريبية) —
+  // وهي الجذر الثاني لتقلّب أرقام الباك تيست تلقائياً (7000→2000).
+  // الإعدادات الآن لا تُلمس إلا بيد المالك: زر «تشغيل المدير الآلي»
+  // (نقرة صريحة في نافذة الضبط) أو صفحة الإعدادات.
+  // القرارات المقترحة تبقى متاحة عند الطلب عبر زر التشغيل اليدوي فقط.
 
   // ---- السبريد الحي + بوابة السبريد ----
   const feed = mt5Feed();
