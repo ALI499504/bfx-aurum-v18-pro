@@ -8,7 +8,7 @@ import { Candle, Consolidation, Dir, PIP, RealPivot, SessionId, Setup, StrategyI
 import { TamsaParams, CaseCfg, SessionKey, HParams, IParams, LParams, MParams, NParams, OParams, ALLOWED_SESSIONS } from './tamsa-params';
 import { findFibAnchors, fibLevel, findPivotsTF } from './structure';
 import { atr, emaSeries } from './indicators';
-import { syriaHour } from './sessions';
+import { syriaHour, syriaDayNum, SYRIA_OFFSET_MS } from './sessions';
 
 export interface SignalEvent {
   strategy: StrategyId;
@@ -2049,6 +2049,171 @@ export function detectX(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] {
 }
 
 // ============================================================
+// BB: اختراق افتتاح لندن — Aurum London Breakout
+// النطاق = أول rangeMin دقيقة بعد افتتاح لندن بالتوقيت السوري (10:00)،
+// الدخول بأمر سوق عند إغلاق شمعة 5m يتجاوز النطاق + هامش الاختراق.
+// إشارة واحدة يومياً (أول اختراق يفوز)، وقف ATR وهدف R-multiple.
+// المصدر: قواعد London/ORB المعتمدة في المستودعات المفتوحة وأدلة
+// الاستراتيجيات (نطاق أول 30 دقيقة ثم اختراق بإغلاق شمعة).
+// ============================================================
+export function detectBB(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] {
+  const out: SignalEvent[] = [];
+  const P = ctx.params.BB;
+  if (!P.enabled) return out;
+  const c = inp.c5, ms = TF_MS['5m'];
+  if (c.length < 400) return out;
+  const atr5 = atr(c, 14);
+  let dayKey = -1;
+  let hi = -Infinity, lo = Infinity, bars = 0, rangeDone = false, fired = false;
+  for (let i = 0; i < c.length; i++) {
+    const bar = c[i];
+    const dk = syriaDayNum(bar.t);
+    if (dk !== dayKey) { dayKey = dk; hi = -Infinity; lo = Infinity; bars = 0; rangeDone = false; fired = false; }
+    const mins = ((bar.t + SYRIA_OFFSET_MS) % 86400e3) / 60e3;
+    const hSy = Math.floor(mins / 60);
+    const rangeEndMin = 10 * 60 + P.rangeMin;
+    if (!rangeDone) {
+      if (hSy === 10 && mins - 10 * 60 < P.rangeMin) { hi = Math.max(hi, bar.h); lo = Math.min(lo, bar.l); bars++; continue; }
+      if (mins >= rangeEndMin) {
+        rangeDone = true;
+        if (bars < 3) { fired = true; continue; } // يوم ناقص البيانات — لا تداول
+        const widthPips = (hi - lo) / PIP;
+        if (widthPips < P.minRangePips || widthPips > P.maxRangePips) fired = true; // نطاق ميت أو مجنون
+      } else continue;
+    }
+    if (fired || mins >= P.entryUntilHour * 60) continue;
+    let dir: 'buy' | 'sell' | null = null;
+    if (bar.c > hi + pips(P.bufferPips)) dir = 'buy';
+    else if (bar.c < lo - pips(P.bufferPips)) dir = 'sell';
+    if (!dir) continue;
+    fired = true; // إشارة واحدة يومياً — حتى لو قتلت البوابة اليوم انتهى
+    const a = atr5[i];
+    if (!Number.isFinite(a) || a <= 0) continue;
+    const knownAt = bar.t + ms;
+    const g = gateDir(ctx, 'BB', 'main', P.main, dir, knownAt);
+    if (!g.ok) continue;
+    const slPips = Math.max(P.minSlPips, Math.round(P.slAtrMult * a / PIP));
+    const tpPips = Math.max(30, Math.round(P.tpR * slPips));
+    push(out, {
+      strategy: 'BB', case: 'main', scenario: g.scenario, dir,
+      entry: bar.c, slPips, tpPips,
+      refLevel: dir === 'buy' ? hi : lo, levelKey: `BB:${dk}`, knownAt,
+      market: true, // تنفيذ على افتتاح أول شمعة بعد الإغلاق المكسور
+      reason: `اختراق افتتاح لندن: إغلاق 5m ${dir === 'buy' ? 'فوق قمة' : 'تحت قاع'} نطاق أول ${P.rangeMin} دقيقة (${hi.toFixed(2)}/${lo.toFixed(2)}) بهامش ${P.bufferPips} بيب — عرض النطاق ${Math.round((hi - lo) / PIP)} بيب، وقف ${P.slAtrMult}×ATR هدف ${P.tpR}R تنفيذ ماركت`,
+      expiresAt: knownAt + 30 * 60e3,
+    });
+  }
+  return out;
+}
+
+// ============================================================
+// CC: سلحفاة دونشييان 55 ساعي — Aurum Turtle
+// اختراق إغلاق ساعي لأعلى/أدنى 55 شمعة سابقة (نظام السلاحف الأصلي:
+// قناة دخول 20 يومي ≈ 55 ساعي على الذهب)، وقف 2×ATR(22) وهدف 4×ATR (2R).
+// آلة حالة: لا إشارة جديدة قبل كسر قناة الخروج 20 ساعي ضد الصفقة.
+// المصدر: قواعد Dennis/Eckhardt الموثقة في مستودعات Turtle المفتوحة.
+// ============================================================
+export function detectCC(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] {
+  const out: SignalEvent[] = [];
+  const P = ctx.params.CC;
+  if (!P.enabled) return out;
+  const c = inp.c1h, ms = TF_MS['1h'];
+  if (c.length < P.entryN + P.exitN + 10) return out;
+  const atrH = atr(c, P.atrN);
+  const chanHi = (i: number, n: number): number => { let m = -Infinity; for (let j = i - n; j < i; j++) m = Math.max(m, c[j].h); return m; };
+  const chanLo = (i: number, n: number): number => { let m = Infinity; for (let j = i - n; j < i; j++) m = Math.min(m, c[j].l); return m; };
+  let state = 0; // 1 شراء نشط، -1 بيع نشط، 0 ساكن
+  for (let i = P.entryN + 1; i < c.length; i++) {
+    const bar = c[i];
+    // إعادة الضبط السلحفاوية: كسر قناة الخروج (exitN) ضد الصفقة
+    if (state === 1 && bar.c < chanLo(i, P.exitN)) state = 0;
+    else if (state === -1 && bar.c > chanHi(i, P.exitN)) state = 0;
+    if (state !== 0) continue;
+    let dir: 'buy' | 'sell' | null = null;
+    if (bar.c > chanHi(i, P.entryN)) dir = 'buy';
+    else if (bar.c < chanLo(i, P.entryN)) dir = 'sell';
+    if (!dir) continue;
+    state = dir === 'buy' ? 1 : -1; // الآلة الحالة تُضبط حتى لو قتلت البوابة (نمط U — لا إعادة توليد)
+    const a = atrH[i];
+    if (!Number.isFinite(a) || a <= 0) continue;
+    const knownAt = bar.t + ms;
+    const g = gateDir(ctx, 'CC', 'main', P.main, dir, knownAt);
+    if (!g.ok) continue;
+    const slPips = Math.max(P.minSlPips, Math.round(P.slAtrMult * a / PIP));
+    const tpPips = Math.max(50, Math.round(P.tpAtrMult * a / PIP));
+    push(out, {
+      strategy: 'CC', case: 'main', scenario: g.scenario, dir,
+      entry: bar.c, slPips, tpPips,
+      refLevel: dir === 'buy' ? chanHi(i, P.entryN) : chanLo(i, P.entryN),
+      levelKey: `CC:${bar.t}`, knownAt,
+      market: true, // اختراق إغلاقي — تنفيذ على افتتاح الشمعة التالية
+      reason: `سلحفاة دونشييان: إغلاق H1 ${dir === 'buy' ? 'فوق أعلى' : 'تحت أدنى'} ${P.entryN} شمعة سابقة (${(dir === 'buy' ? chanHi(i, P.entryN) : chanLo(i, P.entryN)).toFixed(2)}) — وقف ${P.slAtrMult}×ATR هدف ${P.tpAtrMult}×ATR، الخروج/إعادة الضبط بقناة ${P.exitN} ساعي`,
+      expiresAt: knownAt + 2 * 3600e3,
+    });
+  }
+  return out;
+}
+
+// ============================================================
+// DD: ارتداد EMA20/50 مع الاتجاه على 15 دقيقة — Aurum Pullback
+// النظام: ترندينت (إغلاق فوق EMA50 و EMA20>EMA50 للصعود وعكسه للهبوط)،
+// انتظار لمس EMA20 ثم شمعة مغلقة تعود فوقه → دخول سوقي.
+// وقف 1.5×ATR(14) على 15m وهدف 2R. آلة حالة بلا تكرار قبل انقلاب النظام.
+// المصدر: استراتيجيات التراجع EMA20/50 الموثقة في المستودعات المفتوحة.
+// ============================================================
+export function detectDD(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] {
+  const out: SignalEvent[] = [];
+  const P = ctx.params.DD;
+  if (!P.enabled) return out;
+  const c = inp.c15, ms = TF_MS['15m'];
+  if (c.length < P.slowN + 10) return out;
+  const eF = emaSeries(c, P.fastN);
+  const eS = emaSeries(c, P.slowN);
+  const atr15 = atr(c, 14);
+  let state = 0, stateBars = 0;
+  let armed: 0 | 1 | -1 = 0, armedAt = -1; // 1 لمس صاعد مسجل، -1 لمس هابط مسجل
+  for (let i = P.slowN + 1; i < c.length; i++) {
+    const bar = c[i];
+    const up = bar.c > eS[i] && eF[i] > eS[i];
+    const dn = bar.c < eS[i] && eF[i] < eS[i];
+    stateBars++;
+    // إعادة الضبط: انقلاب النظام أو انقضاء أقصى احتفاظ بالحالة
+    if ((state === 1 && (!up || stateBars > P.stateMaxBars)) || (state === -1 && (!dn || stateBars > P.stateMaxBars))) { state = 0; armed = 0; }
+    // انقضاء صلاحية الارتداد المسجل
+    if (armed !== 0 && i - armedAt > P.armedMaxBars) armed = 0;
+    if (armed === 1 && (!up || bar.c < eS[i])) armed = 0;
+    if (armed === -1 && (!dn || bar.c > eS[i])) armed = 0;
+    if (state !== 0) continue;
+    let dir: 'buy' | 'sell' | null = null;
+    if (up) {
+      if (armed === 0 && bar.l <= eF[i]) { armed = 1; armedAt = i; } // لمس EMA20 أثناء الترند الصاعد
+      else if (armed === 1 && bar.c > eF[i] && bar.c > bar.o) dir = 'buy'; // شمعة صاعدة تستعيد EMA20
+    } else if (dn) {
+      if (armed === 0 && bar.h >= eF[i]) { armed = -1; armedAt = i; }
+      else if (armed === -1 && bar.c < eF[i] && bar.c < bar.o) dir = 'sell';
+    }
+    if (!dir) continue;
+    state = dir === 'buy' ? 1 : -1; stateBars = 0; armed = 0;
+    const a = atr15[i];
+    if (!Number.isFinite(a) || a <= 0) continue;
+    const knownAt = bar.t + ms;
+    const g = gateDir(ctx, 'DD', 'main', P.main, dir, knownAt);
+    if (!g.ok) continue;
+    const slPips = Math.max(P.minSlPips, Math.round(P.slAtrMult * a / PIP));
+    const tpPips = Math.max(30, Math.round(P.tpR * slPips));
+    push(out, {
+      strategy: 'DD', case: 'main', scenario: g.scenario, dir,
+      entry: bar.c, slPips, tpPips,
+      refLevel: eF[i], levelKey: `DD:${bar.t}`, knownAt,
+      market: true,
+      reason: `ارتداد EMA${P.fastN}/${P.slowN} على 15m: ترند ${dir === 'buy' ? 'صاعد' : 'هابط'} (الإغلاق ${dir === 'buy' ? 'فوق' : 'تحت'} EMA${P.slowN} والسريع ${dir === 'buy' ? 'فوق' : 'تحت'} البطيء) + لمس EMA${P.fastN} ثم استعادة إغلاقية — وقف ${P.slAtrMult}×ATR هدف ${P.tpR}R تنفيذ ماركت`,
+      expiresAt: knownAt + 45 * 60e3,
+    });
+  }
+  return out;
+}
+
+// ============================================================
 // المجمّع الكلي — يشغّل كل الكاشفات المفعلة
 // ============================================================
 export function runAllDetectors(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] {
@@ -2086,6 +2251,9 @@ export function runAllDetectors(inp: DetectorsInput, ctx: DetectorsCtx): SignalE
   safe(() => detectX(inp, ctx), "X");
   safe(() => detectY(inp, ctx), "Y");
   safe(() => detectAA(inp, ctx), "AA");
+  safe(() => detectBB(inp, ctx), "BB");
+  safe(() => detectCC(inp, ctx), "CC");
+  safe(() => detectDD(inp, ctx), "DD");
   safe(() => detectZ(inp, ctx), "Z");
 
   // ---- بوابة التنظيم المركزية (خطة التحويل): تصفية العكسية ضد اليومي + حصر C/G/H/O في الهدوء ----

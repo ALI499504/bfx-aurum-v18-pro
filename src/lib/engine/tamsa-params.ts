@@ -403,11 +403,56 @@ export interface ZParams {
   expHours: number;         // صلاحية الأمر بالساعات (2)
 }
 
+// ---------- BB: اختراق افتتاح لندن (Aurum London Breakout) ----------
+// النطاق = أول rangeMin دقيقة بعد افتتاح جلسة لندن بالتوقيت السوري (10:00)،
+// الدخول بأمر سوق عند إغلاق شمعة 5m يتجاوز النطاق + هامش، إشارة واحدة يومياً.
+export interface BBParams {
+  enabled: boolean;
+  main: CaseCfg;
+  rangeMin: number;         // دقائق نطاق الافتتاح (30)
+  bufferPips: number;       // هامش الاختراق فوق/تحت النطاق بالبيبز (10)
+  minRangePips: number;     // أقل عرض نطاق مقبول بالبيبز (40 — لا أيام ميتة)
+  maxRangePips: number;     // أكبر عرض نطاق مقبول بالبيبز (600 — لا أيام مجنونة)
+  slAtrMult: number;        // الوقف = ×ATR(14) على 5m (1.2)
+  minSlPips: number;        // أرضية الوقف بالبيبز (25)
+  tpR: number;              // الهدف = tpR × مسافة الوقف (2.0)
+  entryUntilHour: number;   // آخر ساعة سورية للدخول (15 — لندن + لندن/نيويورك)
+}
+
+// ---------- CC: سلحفاة دونشييان 55 ساعي (Aurum Turtle) ----------
+// اختراق إغلاق ساعي لأعلى/أدنى 55 شمعة سابقة، وقف 2×ATR(22)، هدف 4×ATR (2R)،
+// آلة حالة: لا إشارة جديدة بنفس الاتجاه قبل كسر قناة الخروج 20 ضد الصفقة.
+export interface CCParams {
+  enabled: boolean;
+  main: CaseCfg;
+  entryN: number;           // فترة قناة الدخول بالساعات (55)
+  exitN: number;            // فترة قناة الخروج/إعادة الضبط بالساعات (20)
+  atrN: number;             // فترة ATR بالساعات (22)
+  slAtrMult: number;        // الوقف = ×ATR (2.0 — وحدة السلحفاة N)
+  tpAtrMult: number;        // الهدف = ×ATR (4.0 — هدف 2R)
+  minSlPips: number;        // أرضية الوقف بالبيبز (40)
+}
+
+// ---------- DD: ارتداد EMA20/50 مع الاتجاه على 15 دقيقة (Aurum Pullback) ----------
+// ترندينت: الإغلاق فوق EMA50 و EMA20>EMA50 (صعود) أو عكسه (هبوط). انتظار لمس
+// EMA20 ثم شمعة مغلقة صاعدة فوقه → دخول سوقي. وقف 1.5×ATR(14) وهدف 2R.
+export interface DDParams {
+  enabled: boolean;
+  main: CaseCfg;
+  fastN: number;            // فترة EMA السريعة (20)
+  slowN: number;            // فترة EMA البطيئة (50)
+  armedMaxBars: number;     // صلاحية انتظار التفعيل بعد لمس EMA20 بالشموع (6)
+  stateMaxBars: number;     // أقصى شموع قبل إعادة ضبط آلة الحالة (24)
+  slAtrMult: number;        // الوقف = ×ATR(14) على 15m (1.5)
+  minSlPips: number;        // أرضية الوقف بالبيبز (20)
+  tpR: number;              // الهدف = tpR × مسافة الوقف (2.0)
+}
+
 export interface TamsaParams {
   A: AParams; B: BParams; C: CParams; D: DParams; E: EParams; F: FParams;
   G: GParams; H: HParams; I: IParams; J: JParams; K: KParams; L: LParams;
   M: MParams; N: NParams; O: OParams; P: PParams; Q: QParams; R: RParams;
-  T: TParams; U: UParams; V: VParams; W: WParams; X: XParams; Y: YParams; AA: AAParams; Z: ZParams;
+  T: TParams; U: UParams; V: VParams; W: WParams; X: XParams; Y: YParams; AA: AAParams; BB: BBParams; CC: CCParams; DD: DDParams; Z: ZParams;
 }
 
 export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
@@ -579,6 +624,24 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     pivotStrength: 3, lookback: 40, minSweepPips: 15,
     slBufPips: 15, rr: 2.0, expHours: 2,
   },
+  BB: {
+    enabled: false,
+    main: caseCfg(true),
+    rangeMin: 30, bufferPips: 10, minRangePips: 40, maxRangePips: 600,
+    slAtrMult: 1.2, minSlPips: 25, tpR: 2.0, entryUntilHour: 15,
+  },
+  CC: {
+    enabled: false,
+    main: caseCfg(true),
+    entryN: 55, exitN: 20, atrN: 22,
+    slAtrMult: 2.0, tpAtrMult: 4.0, minSlPips: 40,
+  },
+  DD: {
+    enabled: false,
+    main: caseCfg(true),
+    fastN: 20, slowN: 50, armedMaxBars: 6, stateMaxBars: 24,
+    slAtrMult: 1.5, minSlPips: 20, tpR: 2.0,
+  },
 };
 
 /** الجلسات المسموحة حرفياً لكل استراتيجية وفق الدليل (تقفل البقية برمز القفل الرمادي) */
@@ -608,6 +671,9 @@ export const ALLOWED_SESSIONS: Record<keyof TamsaParams, SessionKey[]> = {
   X: ['asia', 'london', 'londonNY', 'ny'],
   Y: ['asia', 'london', 'londonNY', 'ny'],
   AA: ['asia', 'london', 'londonNY', 'ny'],
+  BB: ['london', 'londonNY'],
+  CC: ['asia', 'london', 'londonNY', 'ny'],
+  DD: ['london', 'londonNY', 'ny'],
   Z: ['asia', 'london', 'londonNY', 'ny'],
 };
 
@@ -665,6 +731,9 @@ export const STRATEGY_CASES: Record<keyof TamsaParams, TamsaCaseKey[]> = {
   X: ['main'],
   Y: ['main'],
   AA: ['main'],
+  BB: ['main'],
+  CC: ['main'],
+  DD: ['main'],
   Z: ['main'],
 };
 
