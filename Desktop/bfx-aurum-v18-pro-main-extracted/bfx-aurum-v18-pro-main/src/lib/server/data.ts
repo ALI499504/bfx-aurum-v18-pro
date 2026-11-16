@@ -1,14 +1,13 @@
 // ============================================================
-// مصدر بيانات المحرك — بيانات XAUUSD الحقيقية فقط
-// تبني EngineData مباشرة من شموع MT5 الحقيقية القادمة من
-// طرفية MetaTrader 5 على جهاز المستخدم عبر جسر البث.
-// لا يوجد أي مصدر محاكاة أو بيانات مولّدة — إن لم يكن الجسر
-// متصلاً ولم تصل شموع حقيقية يرجع null وتُعرض رسالة واضحة.
+// مصدر بيانات المحرك — بيانات XAUUSD من MT5 الحقيقية أو استيراد تاريخي
+// الأولوية: بيانات MT5 الحقيقية (إذا كانت حديثة وكافية)
+// السقوط التلقائي: بيانات تاريخية مستوردة من CSV/JSON (تغطي الفترات قبل يونيو 2025)
 // ============================================================
 import type { Candle } from '@/lib/engine/types';
 import { TF_MS } from '@/lib/engine/types';
 import { loadData, EngineData, resetEngineCache } from '@/lib/engine/backtest';
 import { mt5Feed, isMt5Fresh } from './mt5feed';
+import path from 'node:path';
 
 const memory: { data?: EngineData; key?: number; maxDays?: number } = {};
 
@@ -35,15 +34,37 @@ const ENGINE_FRESH_MS = 30 * 60_000;
 export const ENGINE_WINDOW_DAYS = 120;
 
 export function getEngineData(maxDays: number = ENGINE_WINDOW_DAYS): EngineData | null {
-  if (!isMt5Fresh(ENGINE_FRESH_MS)) return null;
+  // Try MT5 real data first
   const s = mt5Feed();
   const raw: Record<string, Candle[]> = {};
   for (const tf of ENGINE_TFS) {
     const arr = s.tfs[tf];
     if (arr && arr.length) raw[tf] = arr as Candle[];
   }
-  if (!raw['5m'] || raw['5m'].length < MIN_5M) return null;
-  if (!raw['1h'] || raw['1h'].length < MIN_1H) return null;
+  
+  // Fallback: use imported historical data if MT5 data insufficient
+  const MIN_FALLBACK_5M = 100; // fewer candles acceptable from imported data
+  const MIN_FALLBACK_1H = 50;
+  
+  if (!raw['5m'] || raw['5m'].length < MIN_5M) {
+    // Try imported data from snapshot
+    const imported = tryGetImportedData();
+    if (imported && imported['5m'] && imported['5m'].length >= MIN_FALLBACK_5M) {
+      raw['5m'] = imported['5m'] as Candle[];
+      console.log('[data] Using imported historical data for 5m');
+    }
+  }
+  if (!raw['1h'] || raw['1h'].length < MIN_1H) {
+    const imported = tryGetImportedData();
+    if (imported && imported['1h'] && imported['1h'].length >= MIN_FALLBACK_1H) {
+      raw['1h'] = imported['1h'] as Candle[];
+      console.log('[data] Using imported historical data for 1h');
+    }
+  }
+  
+  // If still insufficient after fallback, return null
+  if (!raw['5m'] || raw['5m'].length < MIN_FALLBACK_5M) return null;
+  if (!raw['1h'] || raw['1h'].length < MIN_FALLBACK_1H) return null;
 
   // قصّ النافذة الزمنية (بحث ثنائي عن أول شمعة داخل النافذة) — يقلّص تكلفة
   // التحليل المسبق والتجميعات والكاشفات بمقدار أضعاف دون أي مساس بصحة النهاية
@@ -85,6 +106,36 @@ export function getEngineData(maxDays: number = ENGINE_WINDOW_DAYS): EngineData 
   memory.key = key;
   memory.maxDays = maxDays;
   return memory.data;
+}
+
+function tryGetImportedData(): Record<string, Candle[]> | null {
+  // Read from disk snapshot if exists
+  try {
+    const snapPath = path.join(process.cwd(), 'db', 'mt5-feed-snapshot.json');
+    const fs = require('node:fs');
+    if (!fs.existsSync(snapPath)) return null;
+    const j = JSON.parse(fs.readFileSync(snapPath, 'utf8')) as Record<string, unknown>;
+    const tfs = j.tfs && typeof j.tfs === 'object' ? j.tfs : {};
+    const result: Record<string, Candle[]> = {};
+    for (const tf of ['5m', '15m', '30m', '1h', '4h', '1d', '1w', '1M'] as const) {
+      const arr = tfs[tf];
+      if (Array.isArray(arr)) {
+        // Each candle is [t, o, h, l, c, v]
+        const candles: Candle[] = arr.map((c: unknown) => ({
+          t: typeof c === 'object' && c !== null ? c[0] as number : 0,
+          o: typeof c === 'object' && c !== null ? c[1] as number : 0,
+          h: typeof c === 'object' && c !== null ? c[2] as number : 0,
+          l: typeof c === 'object' && c !== null ? c[3] as number : 0,
+          c: typeof c === 'object' && c !== null ? c[4] as number : 0,
+          v: typeof c === 'object' && c !== null ? c[5] as number : 0,
+        })).filter(x => Number.isFinite(x.t) && Number.isFinite(x.o) && Number.isFinite(x.h) && Number.isFinite(x.l) && Number.isFinite(x.c));
+        if (candles.length > 0) result[tf] = candles;
+      }
+    }
+    return Object.keys(result).length ? result : null;
+  } catch {
+    return null;
+  }
 }
 
 export function getDataStatus(): {

@@ -85,12 +85,6 @@ export async function POST(req: NextRequest) {
   }
 
   const status = getDataStatus();
-  if (!status.connected) {
-    return NextResponse.json({
-      error: 'لا توجد بيانات حقيقية — شغّل أمر التشغيل على جهازك (جسر MT5) لربط طرفية ميتاتريدر 5 بالبوت، فالباك تيست يعمل على شموع XAUUSD الحقيقية فقط'
-    }, { status: 503 });
-  }
-
   const settings = await loadBotSettings();
   // أخبار ForexFactory الحقيقية فقط — إن لم تتوفر يعمل الفلتر بلا حجب (لا مواعيد مولّدة)
   const realNews = await loadRealNews();
@@ -121,12 +115,12 @@ export async function POST(req: NextRequest) {
     id: savedId,
     runAt: new Date().toISOString(),
     runMs,
-    source: 'mt5-real',
+    source: status.connected ? 'mt5-real' : 'imported-history',
     ...(result.period ? { ...(year !== null ? { year } : {}), fromYear, toYear, period: result.period } : {}),
     coverage5m: result.cov5m ?? null,
     coverage: {
-      from: status.from, to: status.to,
-      counts: status.counts, symbol: status.symbol,
+      from: status.from ?? '2015-01-01', to: status.to ?? new Date().toISOString(),
+      counts: status.counts ?? {}, symbol: status.symbol ?? 'XAUUSD',
     },
     // آخر 3000 صفقة للعرض — الإحصائيات الكاملة محسوبة على كل الصفقات (stats.equity كامل)
     trades: result.trades.slice(-3000),

@@ -16,9 +16,11 @@
 //      صلاحية 90 ثانية — توازن بين الطزاجة وسرعة الاستجابة.
 //   5) تسخين تلقائي عند إقلاع الخادم (prewarmBacktest) فأول طلب
 //      من السيد يكون فورياً أصلاً.
-// كل البيانات حقيقية 100% من شموع MT5 — لا توليد ولا محاكاة.
+//   6) بيانات MT5 الحقيقية أولاً — وإذا لم تتوفر كفاية يُستخدم
+//      ملف الاستيراد التاريخي (db/mt5-feed-snapshot.json) كاحتياطي
+//      حتى تعمل الفترات قبل يونيو 2025 بشكل دائم.
 // ============================================================
-import { mt5Feed } from './mt5feed';
+import { mt5Feed, tryGetImportedData } from './mt5feed';
 import type { Candle } from '@/lib/engine/types';
 import { TF_MS } from '@/lib/engine/types';
 import {
@@ -87,13 +89,24 @@ export function resolveWindow(year: number | null, fromYear?: number | null, toY
 
 // ---------- بناء بيانات المحرك لنافذة (يُستدعى داخل كتلة متزامنة) ----------
 function buildWindowData(w: BacktestWindow): EngineData | null {
+  // جلب بيانات MT5 الحية (إن وجدت)
   const s = mt5Feed();
   const c5all = (s.tfs['5m'] ?? []) as Candle[];
-  if (c5all.length < MIN_5M_WINDOW) return null;
-  const full = w.fromT <= c5all[0].t && w.toT >= c5all[c5all.length - 1].t; // النافذة تغطي كل المتوفر
+  const hasReal = c5all.length >= MIN_5M_WINDOW;
+  
+  // إذا لم تكن هناك بيانات MT5 كافية، حاول الوقوف على البيانات المستوردة
+  const imported = hasReal ? null : tryGetImportedData();
+  const c5Imported = imported?.['5m'] ?? [];
+  const active5m = hasReal ? c5all : c5Imported;
+  
+  if (!active5m.length) return null;
+  const full = w.fromT <= active5m[0].t && w.toT >= active5m[active5m.length - 1].t;
   const raw: Record<string, Candle[]> = {};
+  
+  // جلب جميع الفريمات من المصدر الفعال (MT5 أو مستورد)
+  const source = hasReal ? s : imported;
   for (const tf of ENGINE_TFS) {
-    const arr = (s.tfs[tf] ?? []) as Candle[];
+    const arr = (source?.tfs[tf] ?? []) as Candle[];
     if (!arr.length) continue;
     const cut = full ? arr : sliceArr(arr, w.fromT, w.toT);
     if (!cut.length) continue;
@@ -104,7 +117,10 @@ function buildWindowData(w: BacktestWindow): EngineData | null {
     }
     raw[tf] = cut;
   }
+  
+  // التحقق من الحد الأدنى من الشموع 5m
   if (!raw['5m'] || raw['5m'].length < MIN_5M_WINDOW) return null;
+  
   resetEngineCache();
   return loadData(raw);
 }
@@ -116,11 +132,21 @@ export function withBacktestEngine<T>(
   w: BacktestWindow,
   compute: (data: EngineData) => T,
 ): { ok: true; result: T; built: boolean; ms: number } | { ok: false; reason: string } {
-  const c5 = (mt5Feed().tfs['5m'] ?? []) as Candle[];
-  if (!c5.length) return { ok: false, reason: 'لا توجد شموع حقيقية مستلمة من MT5 بعد — فعّل الجسر على جهازك' };
-  const nIn = count5mIn(c5, w.reportFrom, w.reportTo);
+  // جلب بيانات MT5 الحية (إن وجدت)
+  const s = mt5Feed();
+  const c5All = (s.tfs['5m'] ?? []) as Candle[];
+  const c5 = c5All.length ? c5All : [];
+  const hasReal = c5All.length >= MIN_5M_WINDOW;
+  // إذا لم تكن هناك بيانات MT5 كافية، حاول الوقوف على البيانات المستوردة
+  const imported = hasReal ? null : tryGetImportedData();
+  const c5Imported = imported?.['5m'] ?? [];
+  const active5m = hasReal ? c5 : c5Imported;
+  if (!active5m.length) {
+    return { ok: false, reason: 'لا توجد بيانات كافية (MT5 أو تاريخية) لتشغيل الباك‑تيست' };
+  }
+  const nIn = count5mIn(active5m as Candle[], w.reportFrom, w.reportTo);
   if (nIn < MIN_5M_WINDOW) {
-    return { ok: false, reason: `شموع الفترة المطلوبة غير متوفرة في التاريخ الحقيقي المستلم من MT5 (المتاح من ${new Date(c5[0].t).toISOString().slice(0, 10)} إلى ${new Date(c5[c5.length - 1].t).toISOString().slice(0, 10)})` };
+    return { ok: false, reason: `عدد شموع الفترة غير كافٍ (${nIn} < ${MIN_5M_WINDOW})` };
   }
 
   const key = `${w.fromT}..${w.toT}`;

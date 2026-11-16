@@ -385,3 +385,38 @@ export function getMt5Status() {
     })),
   };
 }
+
+/**
+ * قراءة ملفsnapshot البيانات التاريخية من القرص (db/mt5-feed-snapshot.json)
+ * ويعيد كائن {tfs: {5m: [...], ...}} إذا كان موجوداً وصالحاً، وإلا null.
+ */
+export function tryGetImportedData(): Record<string, FeedCandle[]> | null {
+  try {
+    const snapPath = path.join(process.cwd(), 'db', 'mt5-feed-snapshot.json');
+    const fs = require('node:fs');
+    if (!fs.existsSync(snapPath)) return null;
+    const j = JSON.parse(fs.readFileSync(snapPath, 'utf8')) as Record<string, unknown>;
+    const tfs = j.tfs && typeof j.tfs === 'object' ? j.tfs : {};
+    const result: Record<string, FeedCandle[]> = {};
+    for (const tf of TF_KEYS) {
+      const arr = tfs[tf];
+      if (Array.isArray(arr)) {
+        // Each candle is [t,o,h,l,c,v]
+        const candles: FeedCandle[] = arr.map((c: unknown) => ({
+          t: typeof c === 'object' && c !== null ? c[0] as number : 0,
+          o: typeof c === 'object' && c !== null ? c[1] as number : 0,
+          h: typeof c === 'object' && c !== null ? c[2] as number : 0,
+          l: typeof c === 'object' && c !== null ? c[3] as number : 0,
+          c: typeof c === 'object' && c !== null ? c[4] as number : 0,
+          v: typeof c === 'object' && c !== null ? c[5] as number : 0,
+        })).filter(x =>
+          Number.isFinite(x.t) && Number.isFinite(x.o) && Number.isFinite(x.h) && Number.isFinite(x.l) && Number.isFinite(x.c)
+        );
+        if (candles.length > 0) result[tf] = candles;
+      }
+    }
+    return Object.keys(result).length ? result : null;
+  } catch {
+    return null;
+  }
+}
