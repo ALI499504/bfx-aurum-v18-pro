@@ -2,10 +2,24 @@
 # -*- coding: utf-8 -*-
 """
 ============================================================
- BFX AURUM v21 - MT5 Live Bridge (Stream + History + Auto Backtest + Live Execution)
+ BFX AURUM v22 - MT5 Live Bridge (Stream + History + Auto Backtest + Live Execution)
  جسر البث الحي: يربط طرفية MetaTrader 5 على جهازك بموقع البوت
  ويرسل شموع الذهب الحقيقية XAUUSD + الحساب الحقيقي + الصفقات
  المفتوحة وسجل الصفقات المنفذة كل ثانيتين، ونبضة سعر كل نصف ثانية.
+------------------------------------------------------------
+ جديد v22 — الشفاء الذاتي الفوري بعد أي إعادة نشر (بلا انتظار الوسيط):
+   • المشكلة: كل إعادة نشر للموقع تبدأ حاوية جديدة بقاعدة بيانات فارغة
+     (قرص Render سريع الزوال) فيختفي الشارت والباك تيست حتى يعيد الجسر
+     سحب التاريخ من الوسيط ببطء (دقائق إلى أكثر من ربع ساعة).
+   • الحل: الجسر يحتفظ بكاش شموع محلي على جهازك (~/.bfx_candle_cache.json.gz)
+     يُغذّى تلقائياً من كل سحب عميق ومن كل دفعة كاملة حية.
+   • عند كشف فقدان تاريخ الموقع: يرفع الكاش كاملاً خلال ثوانٍ — بلا أي
+     تحميل من الوسيط — ثم يكمل الرأس الجديد من الطرفية ويشغّل الباك تيست.
+   • الفحص الذاتي الدوري يجرب الكاش أولاً دائماً قبل السحب الصبور،
+     وكل شموع السحب العميق تُخزَّن في الكاش — فالشفاء التالي أسرع دائماً.
+   • حماية: الكاش لا يُخلط بين الرموز، وحفظه ذرّي لا يتلف، ولا يُعتد به
+     إلا إذا بلغ عمق ما سُجّل سابقاً — أول تشغيل يبني الكاش بالسحب الصبور
+     مرة واحدة فقط، وكل إعادة نشر بعدها شفاء فوري خلال ثوانٍ.
 ------------------------------------------------------------
  جديد v21 — التنفيذ الحي المباشر على MT5 (قرار المالك: الدخول للعمل مباشرة):
    • الموقع = عقل القرار الدستوري، وهذا الجسر = منفّذ أعمى مقيّد:
@@ -60,6 +74,7 @@
 """
 import argparse
 import glob
+import gzip
 import json
 import os
 import sys
@@ -68,9 +83,9 @@ import time
 import urllib.request
 import urllib.error
 
-DEFAULT_URL = "https://preview-chat-78d758a3-2904-47bf-862f-8130a1a76742.space-z.ai"
+DEFAULT_URL = "https://bfx-aurum-v18-pro.onrender.com"
 TOKEN = "bfx-aurum-mt5-v1"
-BRIDGE_V = 21         # رقم إصدار الجسر — يُرسل مع كل دفعة كي يعرضه الموقع بلا تخمين
+BRIDGE_V = 22         # رقم إصدار الجسر — يُرسل مع كل دفعة كي يعرضه الموقع بلا تخمين
 TICK_STEPS = 4        # نبضات سعر خفيفة بين كل دفعتين شموع (interval ÷ 4 ≈ نصف ثانية)
 SELF_CHECK_EVERY_S = 150  # الفحص الذاتي الدوري للتاريخ في خيط الخلفية
 MT5_LOCK = threading.RLock()  # وصول MT5 من خيطين يجب أن يكون متسلسلاً وآمناً
@@ -91,6 +106,19 @@ PROBE_MAX_DEEP = 100        # صبر أعلى لتعميق رأس التاريخ
 TOPUP_DEADLINE_S = 480      # أقصى زمن لتعميق الرأس في الاستدعاء الواحد (يعاد تلقائياً)
 STATE_VERSION = 17
 STATE_PATH = os.path.join(os.path.expanduser("~"), ".bfx_history_state.json")
+
+# ---------- v22: كاش الشفاء الذاتي على جهازك ----------
+# بعد أي إعادة نشر للموقع تُفقد قاعدة بياناته المؤقتة (قرص Render سريع
+# الزوال) — الجسر يكشف الفقد ويرفع التاريخ من الكاش المحلي خلال ثوانٍ
+# بدل انتظار تحميل الوسيط البطيء، ثم يكمل الرأس الجديد من الطرفية.
+CACHE_VERSION = 1
+CACHE_PATH = os.path.join(os.path.expanduser("~"), ".bfx_candle_cache.json.gz")
+CACHE_SAVE_EVERY_S = 60.0    # أقصى فاصل بين حفظتين للكاش (الحفظ ذرّي tmp + replace)
+CACHE_MAX_PER_TF = 300_000   # نفس سقف الموقع لكل فريم
+
+_CANDLE_CACHE = {"__v": CACHE_VERSION, "symbol": "", "tfs": {}}   # key -> {t: [o,h,l,c,v]}
+_CACHE_LOCK = threading.Lock()
+_cache_last_save = 0.0
 
 try:
     import MetaTrader5 as mt5
@@ -480,6 +508,72 @@ def save_state(state: dict):
         pass
 
 
+def load_candle_cache():
+    """تحميل كاش الشموع من القرص عند بدء خيط التاريخ — ولا يُلغي دمجاً حياً سابقاً"""
+    global _CANDLE_CACHE
+    with _CACHE_LOCK:
+        if _CANDLE_CACHE["tfs"]:
+            return  # وصلت دفعات حية قبل التحميل — لا نضع الكاش فوقها
+        try:
+            with gzip.open(CACHE_PATH, "rt", encoding="utf-8") as f:
+                j = json.load(f)
+            if isinstance(j, dict) and j.get("__v") == CACHE_VERSION and isinstance(j.get("tfs"), dict):
+                # الصيغة المحفوظة: لكل فريم قائمة صفوف مرتبة [t,o,h,l,c,v]
+                # نحوّلها إلى قاموس {t: row} للاستخدام — ونقبل القاموس أيضاً تحوطاً
+                clean = {}
+                for k, v in j["tfs"].items():
+                    if isinstance(v, list) and v:
+                        clean[k] = {r[0]: r for r in v if isinstance(r, list) and r}
+                    elif isinstance(v, dict) and v:
+                        clean[k] = v
+                if clean:
+                    _CANDLE_CACHE = {"__v": CACHE_VERSION, "symbol": str(j.get("symbol") or SYMBOL), "tfs": clean}
+                    sizes = ", ".join(f"{k}={len(v)}" for k, v in clean.items())
+                    print(f"[OK] كاش الشفاء الذاتي محمّل من جهازك: {sizes}")
+        except Exception:
+            pass  # لا كاش بعد (أول تشغيل) أو تالف — السحب الصبور يبنيه من جديد
+
+
+def save_candle_cache(force: bool = False):
+    """حفظ الكاش على القرص — مقيّد بالزمن كي لا يثقل على البث، وذرّي كي لا يتلف أبداً"""
+    global _cache_last_save
+    with _CACHE_LOCK:
+        now = time.time()
+        if not force and now - _cache_last_save < CACHE_SAVE_EVERY_S:
+            return
+        try:
+            out = {"__v": CACHE_VERSION, "symbol": _CANDLE_CACHE.get("symbol") or SYMBOL, "tfs": {}}
+            for k, d in _CANDLE_CACHE["tfs"].items():
+                if isinstance(d, dict) and d:
+                    out["tfs"][k] = [d[t] for t in sorted(d.keys())][-CACHE_MAX_PER_TF:]
+            tmp = CACHE_PATH + ".tmp"
+            with gzip.open(tmp, "wt", encoding="utf-8") as f:
+                json.dump(out, f, separators=(",", ":"))
+            os.replace(tmp, CACHE_PATH)
+            _cache_last_save = now
+        except Exception:
+            pass
+
+
+def cache_merge(key: str, rows: list) -> int:
+    """دمج شموع حقيقية في الكاش (بلا تكرار وبأي ترتيب) — يُرجع عدد الشموع الجديدة"""
+    if not rows:
+        return 0
+    with _CACHE_LOCK:
+        if _CANDLE_CACHE.get("symbol") and _CANDLE_CACHE["symbol"] != SYMBOL:
+            return 0  # رمز مختلف — لا تخلط كاشات الطرفيات
+        d = _CANDLE_CACHE["tfs"].setdefault(key, {})
+        new = 0
+        for r in rows:
+            t = r[0]
+            if t not in d:
+                new += 1
+            d[t] = r
+        if not _CANDLE_CACHE.get("symbol"):
+            _CANDLE_CACHE["symbol"] = SYMBOL
+    return new
+
+
 def chunk_ms_for(key: str) -> int:
     """نافذة السحب الواحدة لكل فريم — أصغر للأفريم الدقيقة كي لا نتجاوز حدود الطرفية
     (فريم 5m تحمّل الطرفية تاريخه ببطء أكبر لذا نوافذ أصغر = تحميل أعمق وأوثق)"""
@@ -566,6 +660,9 @@ def pull_deep_tf(key: str, const_name: str, url: str, state: dict):
             time.sleep(PROBE_SLEEP)
 
         rows = rates_to_rows(rates)
+        if rows:
+            cache_merge(key, rows)
+            save_candle_cache()
         # الطرفية الكسولة: إن أعادت أقل من 10 شموع لنافذة كاملة ندفعها للتحميل
         # بطلب كمية كبيرة من الشموع ثم نعيد السؤال بصبر — كل الشموع حقيقية 100%
         if len(rows) < 10:
@@ -586,6 +683,9 @@ def pull_deep_tf(key: str, const_name: str, url: str, state: dict):
                 tries += 1
                 time.sleep(PROBE_SLEEP)
             rows = rates_to_rows(rates)
+            if rows:
+                cache_merge(key, rows)
+                save_candle_cache()
 
         uploaded_ok = False
         if rows:
@@ -679,6 +779,9 @@ def topup_head_tf(key: str, const_name: str, url: str, state: dict):
                 break
         rows = rates_to_rows(rates)
         if rows:
+            cache_merge(key, rows)
+            save_candle_cache()
+        if rows:
             try:
                 sent = push_history(url, key, rows)
                 total += sent
@@ -741,6 +844,63 @@ def needs_refill(key: str, state: dict, cov) -> bool:
     return oldest > st["minT"] + tf_ms * 5  # الموقع فقد بداية ما رفعناه
 
 
+def heal_from_cache(url: str, state: dict) -> int:
+    """
+    الشفاء الذاتي الفوري (v22) — جوهر تفادي مشكلة «النشر ثم الشارت الفارغ»:
+    الموقع فقد تاريخه (إعادة نشر/إعادة تشغيل)؟ الجسر يرفع الكاش المحلي
+    كاملاً خلال ثوانٍ — بلا أي تحميل من الوسيط — ثم يكمل الفحص الذاتي
+    الرأس الجديد من الطرفية.
+    حماية الدقة: لا يُعتد بالكاش إلا إذا بلغ عمق أقدم شمعة سُجّلت سابقاً
+    في الحالة (minT) — كي لا نعلّم الموقع «مكتمل» وتاريخه رأسياً قصيراً.
+    أول تشغيل بلا سحب مكتمل سابق يبني الكاش بالسحب الصبور مرة واحدة فقط.
+    """
+    cov = server_coverage(url)
+    if cov is None:
+        return 0
+    todo = []
+    with _CACHE_LOCK:
+        tf_cache = _CANDLE_CACHE.get("tfs") or {}
+        for key, _c, _n in TF_MAP:
+            if not needs_refill(key, state, cov):
+                continue
+            d = tf_cache.get(key)
+            if not isinstance(d, dict) or not d:
+                continue
+            st = state.get(key) if isinstance(state.get(key), dict) else {}
+            smt = st.get("minT")
+            if not isinstance(smt, (int, float)):
+                continue  # لا سحب عميق مكتمل سابق — السحب الصبور يبني الكاش أولاً
+            ts = sorted(d.keys())
+            tf_ms = TF_SECONDS[key] * 1000
+            if ts[0] > smt + tf_ms * 5:
+                continue  # الكاش أضحل من أعمق ما رفعناه سابقاً — السحب الصبور يكمل عمقه
+            todo.append((key, [d[t] for t in ts]))
+    if not todo:
+        return 0
+    t0 = time.time()
+    print("=" * 60)
+    print("  [الشفاء الذاتي] الموقع فقد تاريخه — أعيد رفعه من الكاش المحلي على جهازك فوراً")
+    print("  (نفس الشموع الحقيقية السابقة — بلا انتظار تحميل الوسيط إطلاقاً)")
+    grand = 0
+    for key, rows in todo:
+        try:
+            sent = push_history(url, key, rows)
+            grand += sent
+            st = state.get(key) if isinstance(state.get(key), dict) else {}
+            st["complete"] = True
+            st["minT"] = rows[0][0]
+            st["doneAt"] = int(time.time() * 1000)
+            state[key] = st
+            save_state(state)
+            print(f"  [OK] [{key}] شُفي من الكاش: {sent} شمعة ({_date(rows[0][0])} ← {_date(rows[-1][0])})")
+        except KeyboardInterrupt:
+            raise
+        except Exception as e:
+            print(f"  [!] [{key}] تعذر رفع الكاش ({e}) — السحب الصبور من الوسيط سيعوض")
+    print(f"  [الشفاء الذاتي] انتهى في {time.time() - t0:.1f} ثانية — مجموع {grand} شمعة حقيقية")
+    return grand
+
+
 def pull_all_deep(url: str, state: dict):
     """سحب التاريخ العميق الصبور لكل الفريمات — يتخطى ما هو مكتمل على الموقع"""
     print("=" * 60)
@@ -780,8 +940,15 @@ def history_worker(url: str, state: dict, no_backtest: bool):
     """خيط الخلفية: سحب التاريخ العميق + الفحص الذاتي الدوري.
     البث اللحظي في الخيط الرئيسي لا يتوقف أبداً — هذا الخيط يشاركه
     وصول MT5 عبر قفل آمن، وفشله لا يؤثر على البث إطلاقاً."""
+    load_candle_cache()
     try:
+        healed = 0
+        try:
+            healed = heal_from_cache(url, state)   # الشفاء الفوري من الكاش — ثوانٍ بدل دقائق
+        except Exception as e:
+            print(f"[!] الشفاء من الكاش تعذر — السحب الصبور سيعوض: {e}")
         pull_all_deep(url, state)
+        save_candle_cache(force=True)
         if not no_backtest:
             trigger_backtest(url)
         while True:
@@ -791,6 +958,13 @@ def history_worker(url: str, state: dict, no_backtest: bool):
                 if cov is None:
                     continue
                 gained = 0
+                try:
+                    gained += heal_from_cache(url, state)   # الكاش أولاً دائماً — فوري إن وجد
+                    if gained:
+                        cov = server_coverage(url) or cov   # تحديث التغطية بعد الشفاء
+                        print("[i] شُفي التاريخ من الكاش المحلي — بلا انتظار الوسيط")
+                except Exception as e:
+                    print(f"[!] الشفاء من الكاش تعذر — السحب الصبور سيعوض: {e}")
                 for key, const_name, _cnt in TF_MAP:
                     try:
                         if needs_refill(key, state, cov):
@@ -803,6 +977,7 @@ def history_worker(url: str, state: dict, no_backtest: bool):
                             gained += n
                     except Exception as e:
                         print(f"[!] فحص تاريخ {key}: {e}")
+                save_candle_cache(force=True)
                 if gained and not no_backtest:
                     print("[i] تاريخ أعمق متوفر الآن — إعادة الباك تيست الحقيقي")
                     trigger_backtest(url)
@@ -1376,8 +1551,9 @@ def main():
     now_str = lambda: time.strftime("%H:%M:%S")  # noqa: E731
 
     print("=" * 60)
-    print("  BFX AURUM v21 - MT5 Live Bridge (Stream + History + Live Execution)")
+    print("  BFX AURUM v22 - MT5 Live Bridge (Stream + History + Live Execution)")
     print("  بث لحظي + تاريخ عميق + تنفيذ حي مباشر بقرار المالك — لوت 0.01 ثابت ووقف ≤15$")
+    print("  جديد: شفاء ذاتي فوري بعد أي إعادة نشر — الكاش المحلي يرفع التاريخ خلال ثوانٍ")
     print("  الوجهة / Target:", args.url)
     print("=" * 60)
 
@@ -1483,6 +1659,11 @@ def main():
             missing = {k for k, _c, _n in TF_MAP} - have_tfs
             tfs = build_tfs(full, deep_counts=None if full else missing)
             have_tfs.update(tfs.keys())
+            if full:
+                # الدفعة الكاملة تغذي كاش الشفاء الذاتي — رأس الكاش يبقى طازجاً دائماً
+                for _k, _rows in tfs.items():
+                    cache_merge(_k, _rows)
+                save_candle_cache()
             force_full = not tfs  # لا بيانات؟ أعد الدفعة الكاملة لاحقاً
 
             with MT5_LOCK:
@@ -1551,6 +1732,7 @@ def main():
     except KeyboardInterrupt:
         print("\n[i] تم الإيقاف بناءً على طلبك / Stopped by user")
     finally:
+        save_candle_cache(force=True)   # كاش الشفاء محفوظ — إعادة النشر القادمة شفاء فوري
         mt5.shutdown()
 
 
