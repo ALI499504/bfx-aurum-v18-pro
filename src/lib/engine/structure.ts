@@ -60,7 +60,15 @@ export function analyzeStructure(c: Candle[], tf: TF = '1h'): StructureAnalysis 
   let flipExtreme: { price: number; t: number } | null = null; // القاع/القمة الجديد بعد خطوة 1
   let correctionSwing: Swing | null = null;                    // قمة التصحيح (LH) أو قاعه (HL)
 
+  const emittedT = new Set<number>();
   const confirmReal = (kind: RealKind, price: number, t: number, confirmedAt: number) => {
+    // محور فيزيائي واحد = اعتماد واحد فقط.
+    // قبل هذا الحارس كان المحور نفسه يُعاد اعتماده عند كل شريط يكسر مستواه:
+    // القياس على أربع سلاسل أعطى 455 محوراً مكرراً ومحوراً واحداً تكرّر 31 مرة،
+    // مع 454 حالة خروج عن الترتيب الزمني — وهي تغذّي كل الاستراتيجيات وبروتوكول
+    // الأربع نقاط بمحاور وهمية مكررة.
+    if (emittedT.has(t)) return;
+    emittedT.add(t);
     realPivots.push({ kind, tf, price, t, confirmedAt, trendAtConfirm: S.trend === 'range' ? 'up' : S.trend });
   };
 
@@ -92,24 +100,30 @@ export function analyzeStructure(c: Candle[], tf: TF = '1h'): StructureAnalysis 
     if (pendingFlip === 'down') {
       if (correctionSwing && flipExtreme && bar.c < flipExtreme.price) {
         setTrend('down', closeT);
-        confirmReal('LL', flipExtreme.price, flipExtreme.t, closeT);
-        confirmReal('LH', correctionSwing.price, correctionSwing.t, closeT);
-        events.push({ type: 'BOS', tf, dir: 'down', level: flipExtreme.price, t: closeT });
+        // القيم تُلتقط قبل التصفير — الاستعانة سابقاً بفهرسة آخر عنصرين في
+        // realPivots كانت هشّة (تنكسر لحظة إسقاط أي اعتماد مكرر)
+        const newLL = { price: flipExtreme.price, t: flipExtreme.t };
+        const newLH = { price: correctionSwing.price, t: correctionSwing.t };
+        confirmReal('LL', newLL.price, newLL.t, closeT);
+        confirmReal('LH', newLH.price, newLH.t, closeT);
+        events.push({ type: 'BOS', tf, dir: 'down', level: newLL.price, t: closeT });
         pendingFlip = null; flipExtreme = null; correctionSwing = null;
-        mainLow = { price: realPivots[realPivots.length - 2].price, t: realPivots[realPivots.length - 2].t };
-        mainHigh = { price: realPivots[realPivots.length - 1].price, t: realPivots[realPivots.length - 1].t };
+        mainLow = { ...newLL };
+        mainHigh = { ...newLH };
         continue;
       }
       if (!flipExtreme || bar.l < flipExtreme.price) flipExtreme = { price: bar.l, t: bar.t };
     } else if (pendingFlip === 'up') {
       if (correctionSwing && flipExtreme && bar.c > flipExtreme.price) {
         setTrend('up', closeT);
-        confirmReal('HH', flipExtreme.price, flipExtreme.t, closeT);
-        confirmReal('HL', correctionSwing.price, correctionSwing.t, closeT);
-        events.push({ type: 'BOS', tf, dir: 'up', level: flipExtreme.price, t: closeT });
+        const newHH = { price: flipExtreme.price, t: flipExtreme.t };
+        const newHL = { price: correctionSwing.price, t: correctionSwing.t };
+        confirmReal('HH', newHH.price, newHH.t, closeT);
+        confirmReal('HL', newHL.price, newHL.t, closeT);
+        events.push({ type: 'BOS', tf, dir: 'up', level: newHH.price, t: closeT });
         pendingFlip = null; flipExtreme = null; correctionSwing = null;
-        mainHigh = { price: realPivots[realPivots.length - 2].price, t: realPivots[realPivots.length - 2].t };
-        mainLow = { price: realPivots[realPivots.length - 1].price, t: realPivots[realPivots.length - 1].t };
+        mainHigh = { ...newHH };
+        mainLow = { ...newHL };
         continue;
       }
       if (!flipExtreme || bar.h > flipExtreme.price) flipExtreme = { price: bar.h, t: bar.t };
@@ -183,7 +197,39 @@ export function analyzeStructure(c: Candle[], tf: TF = '1h'): StructureAnalysis 
     }
   }
 
-  return { pivots, realPivots, events, trendTimeline };
+  return { pivots, realPivots: normalizeRealPivots(realPivots), events, trendTimeline };
+}
+
+/**
+ * تطبيع المحاور الحقيقية إلى تعرّج متناوب نظيف:
+ *   1) إسقاط التكرار الزمني (محور فيزيائي واحد = اعتماد واحد)
+ *   2) فرز زمني صارم (t ثم confirmedAt) — كان الترتيب مكسوراً في 454 موضعاً
+ *   3) طيّ المتتالي من الجهة نفسها إلى طرفه الأقصى (HH,HH ← HH الأعلى)
+ * كل المستهلكين (الكاشفات A–R وبروتوكول الأربع نقاط) يفترضون تبادل قمة/قاع،
+ * فأي تكرار أو خروج عن الترتيب يفسد قراءتهم للبنية.
+ */
+export function normalizeRealPivots(list: RealPivot[]): RealPivot[] {
+  const seen = new Set<number>();
+  const dedup: RealPivot[] = [];
+  for (const p of list) {
+    if (seen.has(p.t)) continue;
+    seen.add(p.t);
+    dedup.push(p);
+  }
+  dedup.sort((a, b) => (a.t - b.t) || (a.confirmedAt - b.confirmedAt));
+
+  const isHigh = (k: RealKind) => k === 'HH' || k === 'LH';
+  const out: RealPivot[] = [];
+  for (const p of dedup) {
+    const last = out[out.length - 1];
+    if (last && isHigh(last.kind) === isHigh(p.kind)) {
+      const better = isHigh(p.kind) ? p.price > last.price : p.price < last.price;
+      if (better) out[out.length - 1] = p;
+      continue;
+    }
+    out.push(p);
+  }
+  return out;
 }
 
 function latestPivotBefore(pivots: Swing[], ptr: number, kind: 'high' | 'low', t: number): Swing | null {
@@ -418,35 +464,14 @@ export function confirm4Points(
     confirmed: false, trend: 'range', score: 0, trailing: 0, invalidated: false, gaps: 0, reason, ...extra,
   });
 
-  // تطبيع إلى تعرّج متناوب نظيف (zigzag).
-  // محرك الهيكل الأساسي يعيد إصدار المحور نفسه عند كل شريط يكسر المستوى
-  // (سجل حقيقي: 332 محوراً لـ177 نقطة سعرية فقط)، فيصير التتابع
-  // HH,HH,HH… بدل HH,HL,HH. التطبيع التالي لا يغيّر أي محور —
-  // بل يُسقط التكرار ويطوي المتتالي من النوع نفسه إلى طرفه الأقصى.
-  const isHigh = (k: RealKind) => k === 'HH' || k === 'LH';
-  const seenKey = new Set<string>();
-  const ordered = realPivots
-    .filter(p => p.confirmedAt <= asOf && (!opts.tf || p.tf === opts.tf))
-    .slice()
-    .sort((a, b) => (a.confirmedAt - b.confirmedAt) || (a.t - b.t))
-    .filter(p => {
-      const k = `${p.kind}:${p.t}:${p.price}`;
-      if (seenKey.has(k)) return false;
-      seenKey.add(k);
-      return true;
-    });
-
-  const pool: RealPivot[] = [];
-  for (const p of ordered) {
-    const last = pool[pool.length - 1];
-    if (last && isHigh(last.kind) === isHigh(p.kind)) {
-      // نفس النوع: نُبقي الأقصى (أعلى قمة أو أدنى قاع) مع أحدث تأكيد
-      const keepNew = isHigh(p.kind) ? p.price >= last.price : p.price <= last.price;
-      if (keepNew) pool[pool.length - 1] = p;
-      continue;
-    }
-    pool.push(p);
-  }
+  // تطبيع دفاعي خفيف (idempotent).
+  // الإصلاح الجذري أصبح داخل analyzeStructure → normalizeRealPivots، وهذا
+  // يبقى حمايةً للمحاور المبنية تاريخياً أو الواردة من مصدر خارجي
+  // (مثل مخزّن قديم أو محاور مُعاد تشكيلها يدوياً): لا يكسر شيئاً إن كانت
+  // المحاور نظيمة، ويصلحها إن لم تكن.
+  const pool = normalizeRealPivots(
+    realPivots.filter(p => p.confirmedAt <= asOf && (!opts.tf || p.tf === opts.tf)),
+  );
 
   if (pool.length < 4) {
     return none(`محاور غير كافية: ${pool.length}/4 — لا يمكن تأكيد أي نمط`);
