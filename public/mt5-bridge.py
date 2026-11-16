@@ -17,6 +17,8 @@
      تحميل من الوسيط — ثم يكمل الرأس الجديد من الطرفية ويشغّل الباك تيست.
    • الفحص الذاتي الدوري يجرب الكاش أولاً دائماً قبل السحب الصبور،
      وكل شموع السحب العميق تُخزَّن في الكاش — فالشفاء التالي أسرع دائماً.
+   • أول تشغيل للجسر v22 يستكمل الكاش من تاريخ الخادم الحالي (إن وجد)
+     عبر /api/mt5/dump — فلا يُعاد السحب الصبور إلا للنقص الفعلي.
    • حماية: الكاش لا يُخلط بين الرموز، وحفظه ذرّي لا يتلف، ولا يُعتد به
      إلا إذا بلغ عمق ما سُجّل سابقاً — أول تشغيل يبني الكاش بالسحب الصبور
      مرة واحدة فقط، وكل إعادة نشر بعدها شفاء فوري خلال ثوانٍ.
@@ -574,6 +576,43 @@ def cache_merge(key: str, rows: list) -> int:
     return new
 
 
+def get_dump(url: str):
+    """اللقطة الكاملة لذاكرة الشموع على الخادم (محمية بنفس توكن الجسر)"""
+    req = urllib.request.Request(
+        url.rstrip("/") + "/api/mt5/dump",
+        headers={"x-bfx-token": TOKEN},
+    )
+    with urllib.request.urlopen(req, timeout=300) as resp:
+        return json.loads(resp.read().decode("utf-8"))
+
+
+def bootstrap_cache_from_server(url: str) -> int:
+    """أول تشغيل للجسر v22: يستكمل الكاش المحلي من تاريخ الخادم الحالي (إن وجد)
+    كي لا يعيد السحب الصبور إلا للنقص الفعلي — الدمج زمني بلا تكرار."""
+    try:
+        j = get_dump(url)
+    except Exception as e:
+        print(f"[i] استكمال الكاش من الخادم تعذر ({e}) — الكاش يُبنى من السحب الصبور")
+        return 0
+    rows_all = j.get("tfs") if isinstance(j.get("tfs"), dict) else {}
+    if not rows_all:
+        return 0
+    if j.get("symbol") and str(j.get("symbol")) != SYMBOL:
+        print(f"[i] رمز الخادم ({j.get('symbol')}) يخالف رمز الطرفية ({SYMBOL}) — لا استكمال")
+        return 0
+    grand = 0
+    for key, arr in rows_all.items():
+        if not isinstance(arr, list) or not arr:
+            continue
+        rows = [r for r in arr if isinstance(r, list) and len(r) >= 6]
+        if rows:
+            grand += cache_merge(key, rows)
+    if grand:
+        save_candle_cache(force=True)
+        print(f"[OK] استُكمل الكاش من تاريخ الخادم: +{grand} شمعة حقيقية (بلا تكرار)")
+    return grand
+
+
 def chunk_ms_for(key: str) -> int:
     """نافذة السحب الواحدة لكل فريم — أصغر للأفريم الدقيقة كي لا نتجاوز حدود الطرفية
     (فريم 5m تحمّل الطرفية تاريخه ببطء أكبر لذا نوافذ أصغر = تحميل أعمق وأوثق)"""
@@ -941,6 +980,10 @@ def history_worker(url: str, state: dict, no_backtest: bool):
     البث اللحظي في الخيط الرئيسي لا يتوقف أبداً — هذا الخيط يشاركه
     وصول MT5 عبر قفل آمن، وفشله لا يؤثر على البث إطلاقاً."""
     load_candle_cache()
+    try:
+        bootstrap_cache_from_server(url)   # استكمال الكاش من تاريخ الخادم إن وجد — بلا سحب مكرر
+    except Exception as e:
+        print(f"[!] استكمال الكاش من الخادم تعذر: {e}")
     try:
         healed = 0
         try:
