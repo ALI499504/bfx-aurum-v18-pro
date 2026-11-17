@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEngineData } from '@/lib/server/data';
-import { getLiveCandles } from '@/lib/server/mt5feed';
+import { getLiveCandles, isMt5Fresh } from '@/lib/server/mt5feed';
 import { TF } from '@/lib/engine/types';
 import { buildForecast } from '@/lib/engine/forecast';
 
@@ -9,17 +8,14 @@ export const dynamic = 'force-dynamic';
 /** التنبؤ الهيكلي — شموع مستقبلية متوقعة حتمية + نطاق الثقة + مزيج القرار
  *  يعمل على شموع XAUUSD الحقيقية من طرفية MT5 فقط. */
 export async function GET(req: NextRequest) {
-  const data = getEngineData();
-  if (!data) {
+  // بلا مساس بكاش المحرك: التنبؤ يحتاج الشموع فقط (كان getEngineData هنا
+  // يُهدم كاش المحرك عند كل شمعة جديدة — أحد جذور تجميد الشارت).
+  if (!isMt5Fresh(30 * 60_000)) {
     return NextResponse.json({ error: 'no_real_data', message: 'بانتظار الشموع الحقيقية من طرفية MT5 — شغّل أمر التشغيل على جهازك' }, { status: 503 });
   }
 
   const tf = (req.nextUrl.searchParams.get('tf') ?? '15m') as TF;
-  const series: Record<string, typeof data.c5> = {
-    '5m': data.c5, '15m': data.c15, '30m': data.c30, '1h': data.c1h,
-    '4h': data.c4h, '1d': data.c1d, '1w': data.c1w, '1M': data.c1M,
-  };
-  const arr = getLiveCandles(tf, 40) ?? series[tf] ?? data.c15;
+  const arr = getLiveCandles(tf, 40) ?? getLiveCandles('15m', 40);
   if (!arr || arr.length < 40) return NextResponse.json({ error: 'not enough data' }, { status: 503 });
 
   const slice = arr.slice(-600);

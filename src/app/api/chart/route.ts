@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getEngineData } from '@/lib/server/data';
-import { getLiveCandles, getClockSkewMs, mt5Feed } from '@/lib/server/mt5feed';
+import { getLiveCandles, getClockSkewMs, isMt5Fresh, mt5Feed } from '@/lib/server/mt5feed';
 import { TF_MS, TF } from '@/lib/engine/types';
 import { emaSeries } from '@/lib/engine/indicators';
 
@@ -9,8 +8,16 @@ export const dynamic = 'force-dynamic';
 /** شموع الشارت + مؤشرات العرض (EMA) — يدعم نطاقاً زمنياً (from/to) لشارت الصفقة
  *  شموع XAUUSD الحقيقية من طرفية MT5 فقط — لا بيانات محاكاة */
 export async function GET(req: NextRequest) {
-  const data = getEngineData();
-  if (!data) {
+  // إصلاح «تجميد الشارت عند إغلاق شمعة 5m» (2026-11-17):
+  // كان هذا الملف يستدعي getEngineData() — وهي تهدم كاش المحرك (تحليل الهيكل +
+  // 29 كاشفاً + الإشارات) عند كل شمعة جديدة، فيُعاد بناؤه 4–8 ثوانٍ متزامنة
+  // على instance واحد. القياس على الإنتاج: الشارت توقّف 40 ثانية لحظة إغلاق
+  // شمعة (02:06:06) بينما كل قياس آخر 0.6–0.8s.
+  //
+  // الشارت لا يحتاج محرك القرارات إطلاقاً — يحتاج الشموع فقط، وهي متاحة مباشرة
+  // من مخزن البث. بلا محرك: صفر هدم كاش، صفر تجميد، والشارت يُقاس الآن بنفس
+  // سرعة أي قراءة أخرى.
+  if (!isMt5Fresh(30 * 60_000)) {
     return NextResponse.json({ error: 'no_real_data', message: 'بانتظار الشموع الحقيقية من طرفية MT5 — شغّل أمر التشغيل على جهازك' }, { status: 503 });
   }
 
@@ -19,14 +26,12 @@ export async function GET(req: NextRequest) {
   const from = Number(req.nextUrl.searchParams.get('from') ?? 0);
   const to = Number(req.nextUrl.searchParams.get('to') ?? 0);
 
-  const series: Record<string, typeof data.c5> = {
-    '5m': data.c5, '15m': data.c15, '30m': data.c30, '1h': data.c1h,
-    '4h': data.c4h, '1d': data.c1d, '1w': data.c1w, '1M': data.c1M,
-  };
   // شموع العرض: المحاذاة الزمنية والقصّ يتمّان داخل getLiveCandles (مصدر واحد)،
   // فزمن آخر شمعة هو «الآن» الحقيقي لا ساعة الوسيط المتقدمة — وهذا سبب فراغ الشارت.
-  const live = getLiveCandles(tf, 60);
-  const arr = live ?? series[tf] ?? data.c15;
+  const arr = getLiveCandles(tf, 60) ?? getLiveCandles('15m', 60);
+  if (!arr || !arr.length) {
+    return NextResponse.json({ error: 'no_real_data', message: 'شموع غير كافية للفريم المطلوب بعد' }, { status: 503 });
+  }
 
   // وضع النطاق: شموع حول فترة الصفقة (لفتح تفاصيل صفقة معينة)
   const slice = from && to
