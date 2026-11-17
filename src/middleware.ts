@@ -59,6 +59,10 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/api/system/health') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico' ||
+    pathname === '/icon.png' ||        // أيقونة الموقع (Next App Router)
+    pathname === '/apple-icon.png' ||  // أيقونة iOS
+    pathname === '/aurum-bull.png' ||  // لوغو الثور الرسمي — يظهر في صفحة الدخول أيضاً
+    pathname === '/aurum-badge.png' ||
     pathname === '/robots.txt'
   ) return NextResponse.next();
 
