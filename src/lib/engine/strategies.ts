@@ -7,7 +7,7 @@
 import { Candle, Consolidation, Dir, PIP, RealPivot, SessionId, Setup, StrategyId, TF, TF_MS, pips, pipsBetween } from './types';
 import { TamsaParams, CaseCfg, SessionKey, HParams, IParams, LParams, MParams, NParams, OParams, ALLOWED_SESSIONS } from './tamsa-params';
 import { findFibAnchors, fibLevel, findPivotsTF } from './structure';
-import { atr, emaSeries } from './indicators';
+import { atr, emaSeries, adx as computeAdx } from './indicators';
 import { syriaHour, syriaDayNum, SYRIA_OFFSET_MS } from './sessions';
 
 export interface SignalEvent {
@@ -1921,22 +1921,25 @@ export function detectAA(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] 
   if (c.length < P.entryN + P.atrN * 3) return out;
   const closes = c.map(x => x.c);
   const atrArr = atr(c, P.atrN);
+  const adxArr = computeAdx(c, 14); // ADX 14
   let lastEmit = -Infinity;
   for (let i = P.entryN; i < c.length; i++) {
+    // فلتر ADX: لا إشارة إذا كان ADX < 25 (سوق غير ترندي)
+    const adxVal = adxArr[i];
+    if (!Number.isFinite(adxVal) || adxVal < 25) continue;
+    
     let hi = -Infinity, lo = Infinity;
     for (let j = i - P.entryN; j < i; j++) { hi = Math.max(hi, c[j].h); lo = Math.min(lo, c[j].l); }
     let dir: 'buy' | 'sell' | null = null;
     let fresh = false;
     if (closes[i] > hi) {
       dir = 'buy';
-      // اختراق جديد: الإغلاق السابق لم يكن فوق القناة
-      // (حماية: عند أول شمعة i=entryN لا توجد قناة سابقة كاملة → ليس جديداً)
       let prevHi = -Infinity;
       if (i >= P.entryN + 1) {
         for (let j = i - 1 - P.entryN; j < i - 1; j++) prevHi = Math.max(prevHi, c[j].h);
         fresh = closes[i - 1] <= prevHi;
       } else {
-        fresh = true; // أول اختراق — لا يوجد ماضٍ للمقارنة، يُعد جديداً
+        fresh = true;
       }
     } else if (closes[i] < lo) {
       dir = 'sell';
@@ -1960,10 +1963,10 @@ export function detectAA(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] 
       strategy: 'AA', case: 'main', scenario: g.scenario, dir,
       entry: closes[i],
       slPips: Math.max(30, Math.round(P.slAtrMult * a / PIP)),
-      tpPips: 0, // بلا هدف ثابت — الخروج بكسر قناة الخروج (خروج القاعدة)
+      tpPips: 0,
       refLevel: dir === 'buy' ? hi : lo, levelKey: `AA:${c[i].t}`, knownAt,
-      market: true, // ماركت على الافتتاح التالي — اصطلاح المحاكاة
-      reason: `اختراق ${fresh ? 'جديد' : 'مستمر'} لدونشييان ${P.entryN} ساعة ${dir === 'buy' ? 'للأعلى' : 'للأسفل'} عند ${closes[i].toFixed(2)} — تنفيذ ماركت على الافتتاح، وقف ${P.slAtrMult}×ATR، بلا هدف: الخروج بكسر القناة المعاكسة ${P.exitN} ساعة`,
+      market: true,
+      reason: `اختراق ${fresh ? 'جديد' : 'مستمر'} لدونشييان ${P.entryN} ساعة ${dir === 'buy' ? 'للأعلى' : 'للأسفل'} عند ${closes[i].toFixed(2)} | ADX ${adxVal.toFixed(1)} — تنفيذ ماركت، وقف ${P.slAtrMult}×ATR`,
       expiresAt: knownAt + 60 * 60e3,
     });
   }
