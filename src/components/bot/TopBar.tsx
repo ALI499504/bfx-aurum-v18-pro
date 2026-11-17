@@ -69,7 +69,10 @@ export function TopBar() {
     <header className="h-13 shrink-0 z-20 relative border-b border-[#1b2334] bg-gradient-to-l from-[#0b101c] via-[#111827] to-[#0b101c] flex items-center gap-3 sm:gap-4 px-3 sm:px-4">
       {/* الهوية */}
       <div className="flex items-center gap-2.5 min-w-0">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#e8c66f] to-[#8a6d2f] flex items-center justify-center text-[#0a0e17] font-black text-[15px] shadow-[0_0_18px_rgba(217,180,92,0.25)] ring-1 ring-[#d9b45c]/40">Au</div>
+        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#e8c66f] to-[#8a6d2f] flex items-center justify-center shadow-[0_0_18px_rgba(217,180,92,0.25)] ring-1 ring-[#d9b45c]/40">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/aurum-bull.png" alt="BFX AURUM — ثور الذهب" className="w-7 h-7 select-none pointer-events-none" draggable={false} />
+        </div>
         <div className="hidden sm:block min-w-0">
           <div className="font-black text-[14.5px] leading-tight tracking-wide">
             BFX AURUM <span className="text-[#d9b45c]">v18</span>

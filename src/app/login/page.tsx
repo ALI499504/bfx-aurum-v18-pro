@@ -15,7 +15,10 @@ export default async function LoginPage({ searchParams }: {
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-[#2a3450] bg-[#0d1322] shadow-2xl overflow-hidden">
           <div className="px-6 py-5 border-b border-[#1c2438] flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d9b45c] to-[#a8842f] flex items-center justify-center text-[#0a0e17] text-lg font-black">Au</span>
+            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d9b45c] to-[#a8842f] flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/aurum-bull.png" alt="BFX AURUM" className="w-8 h-8 select-none pointer-events-none" draggable={false} />
+            </span>
             <div>
               <div className="text-[15px] font-bold text-[#e9edf4]" dir="ltr">BFX AURUM <span className="text-[#d9b45c]">v18 PRO</span></div>
               <div className="text-[11px] text-[#8b94a8]">منصة بوت الذهب XAUUSD الخاصة</div>
