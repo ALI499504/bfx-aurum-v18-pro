@@ -72,7 +72,7 @@ export const DEFAULT_SETTINGS = {
     max_daily_trades: { enabled: true, value: 50 },    // 5. حد أقصى 50 صفقة يومية
     min_daily_trades: { enabled: true, value: 1 },     // 6. حد أدنى صفقة واحدة يومياً (مراقبة)
     daily_loss_stop: { enabled: true, value: 50 },     // 7. حد خسارة يومي 50$
-    daily_profit_stop: { enabled: true, value: 200 },  // 8. مستهدف ربح يومي 200$
+    daily_profit_stop: { enabled: true, value: 350 },  // 8. مستهدف ربح يومي 350$ (قرار المالك 2026-11-17)
     no_martingale: { enabled: true, value: 0 },        // 9. حظر المارتنجال
     single_trade: { enabled: true, value: 0 },         // 10. الصفقة النشطة الواحدة
     no_stacking_hedge: { enabled: true, value: 0 },    // 11. حظر الاستاكنج والهيدج
