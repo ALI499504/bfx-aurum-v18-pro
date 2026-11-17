@@ -77,6 +77,11 @@ export interface TAMSAConfig {
   signalMaxAgeMs?: number;
   /** حجب الإشارات منتهية الصلاحية (expiresAt < now) — افتراضي true */
   honorExpiry?: boolean;
+  /** سقف عدد المحاور الحقيقية المُغذاة للكاشفات (افتراضي 400 — الأحدث فقط).
+   *  بلا سقف تنفجر التكلفة: 2043 محوراً × 23 كاشفاً = 201 ثانية وتحجير
+   *  لحلقة Node الواحدة (يُجمّد الشارت وكل الـ APIs). المحاور الأقدم من
+   *  آخر 400 لا تُنتج إشارات حيّة أصلاً لأن صلاحيتها ساعات لا أسابيع. */
+  maxPivots?: number;
   /** نموذج مخصّص (اختبارات/توليد) */
   filter?: LightGBMFilter;
 }
@@ -231,6 +236,7 @@ export class TAMSAEngine {
       resetState: config.resetState ?? true,
       signalMaxAgeMs: config.signalMaxAgeMs ?? 24 * 3600e3,
       honorExpiry: config.honorExpiry ?? true,
+      maxPivots: config.maxPivots ?? 400,
     };
     this.filter = config.filter ?? new LightGBMFilter({
       enabled: this.config.lightGBM,
@@ -444,14 +450,17 @@ export class TAMSAEngine {
 
     // ---------- 4) الكاشفات ----------
     if (this.config.resetState) resetTamsaState();
+    // سقف المحاور: الأحدث فقط — يحمي حلقة الأحداث من الانفجار الحسابي
+    const cap = <T>(list: T[]): T[] =>
+      list.length > this.config.maxPivots ? list.slice(list.length - this.config.maxPivots) : list;
     const inp: DetectorsInput = {
       c5, c15, c30, c1h, c4h, c1d, c1w, c1M,
       cons15: consolidations,
       trend1h: h1.trendTimeline,
       trend4h: h4.trendTimeline,
       trend1d: d1.trendTimeline,
-      real1h: h1.realPivots,
-      real4h: h4.realPivots,
+      real1h: cap(h1.realPivots),
+      real4h: cap(h4.realPivots),
     };
     const emaCfg = settings?.indicators;
     const emaAt = emaCfg && emaCfg.ema && c4h.length && c1d.length
