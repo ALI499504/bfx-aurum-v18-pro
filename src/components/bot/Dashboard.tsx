@@ -106,6 +106,9 @@ export function Dashboard() {
     emaSlow: { t: number; v: number | null }[];
   } | null>(null);
   const [fc, setFc] = useState<ForecastData | null>(null);
+  // حالة تحميل الشارت: عند تبديل الفريم نُفرغ البيانات القديمة فوراً ونُظهر
+  // مؤشر تحميل — بدل إبقاء شارت الفريم السابق معروضاً ثم القفز للجديد (كان يبدو «تأخراً»)
+  const [chartLoading, setChartLoading] = useState(true);
   // الشمعة الحية اللحظية من بث MT5 — تحدّث آخر شمعة في الشارت بلا إعادة تحميل
   const [liveCandle, setLiveCandle] = useState<{ t: number; o: number; h: number; l: number; c: number } | null>(null);
   const tfRef = useRef('15m');
@@ -150,15 +153,20 @@ export function Dashboard() {
 
   useEffect(() => {
     let alive = true;
+    const ac = new AbortController();
+    // تبديل الفريم = بيانات الفريم السابق لم تعد صالحة → نُفرغها فوراً
+    // حتى لا يُعرض شارت فريم آخر تحت اسم الفريم الجديد
+    setChartData(null);
+    setChartLoading(true);
     (async () => {
       try {
-        const r = await fetch(`/api/chart?tf=${tf}&limit=350`);
-        if (!r.ok) return;
+        const r = await fetch(`/api/chart?tf=${tf}&limit=350`, { cache: 'no-store', signal: ac.signal });
+        if (!r.ok) { if (alive) setChartLoading(false); return; }
         const j = await r.json();
-        if (alive) setChartData(j);
-      } catch { /* ignore */ }
+        if (alive) { setChartData(j); setChartLoading(false); }
+      } catch { if (alive) setChartLoading(false); }
     })();
-    return () => { alive = false; };
+    return () => { alive = false; ac.abort(); };
   }, [tf, reloadKey]);
 
   // تحليل الهيكل (يغذي شريط القرار السفلي والمستويات على الشارت)
@@ -252,7 +260,12 @@ export function Dashboard() {
         </div>
         {/* الشارت يملأ كل ما تبقى من الشاشة */}
         <div className="flex-1 min-h-[300px]">
-          {chartData ? (
+          {chartLoading && !chartData ? (
+            <div className="w-full h-full min-h-[300px] flex flex-col items-center justify-center gap-3">
+              <div className="w-9 h-9 rounded-full border-2 border-[#d9b45c]/25 border-t-[#d9b45c] animate-spin" />
+              <div className="text-[12px] text-[#8a94a6]">جارٍ تحميل شموع {tf}…</div>
+            </div>
+          ) : chartData ? (
             <GoldChart
               tfLabel={tf}
               candles={chartData.candles}
