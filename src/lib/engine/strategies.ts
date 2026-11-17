@@ -1921,18 +1921,22 @@ export function detectAA(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] 
   if (c.length < P.entryN + P.atrN * 3) return out;
   const closes = c.map(x => x.c);
   const atrArr = atr(c, P.atrN);
-  const adxArr = computeAdx(c, 14); // ADX 14
+  const adxArr = computeAdx(c, 14);
   let lastEmit = -Infinity;
   for (let i = P.entryN; i < c.length; i++) {
-    // فلتر ADX: لا إشارة إذا كان ADX < 25 (سوق غير ترندي)
+    // فلتر ADX: لا إشارة إذا كان ADX < 30 (سوق غير ترندي بقوة)
     const adxVal = adxArr[i];
-    if (!Number.isFinite(adxVal) || adxVal < 25) continue;
+    if (!Number.isFinite(adxVal) || adxVal < 30) continue;
     
     let hi = -Infinity, lo = Infinity;
     for (let j = i - P.entryN; j < i; j++) { hi = Math.max(hi, c[j].h); lo = Math.min(lo, c[j].l); }
     let dir: 'buy' | 'sell' | null = null;
     let fresh = false;
-    if (closes[i] > hi) {
+    const a = atrArr[i];
+    if (!Number.isFinite(a) || a <= 0) continue;
+    
+    // فلتر قوة الاختراق: يجب أن يغلق فوق/تحت القناة بمسافة >= 0.3×ATR
+    if (closes[i] > hi && (closes[i] - hi) >= 0.3 * a) {
       dir = 'buy';
       let prevHi = -Infinity;
       if (i >= P.entryN + 1) {
@@ -1941,7 +1945,7 @@ export function detectAA(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] 
       } else {
         fresh = true;
       }
-    } else if (closes[i] < lo) {
+    } else if (closes[i] < lo && (lo - closes[i]) >= 0.3 * a) {
       dir = 'sell';
       let prevLo = Infinity;
       if (i >= P.entryN + 1) {
@@ -1953,8 +1957,6 @@ export function detectAA(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] 
     }
     if (!dir) continue;
     if (!fresh && i - lastEmit < P.reassertBars) continue;
-    const a = atrArr[i];
-    if (!Number.isFinite(a) || a <= 0) continue;
     lastEmit = i;
     const knownAt = c[i].t + ms;
     const g = gateDir(ctx, 'AA', 'main', P.main, dir, knownAt);
@@ -1966,7 +1968,7 @@ export function detectAA(inp: DetectorsInput, ctx: DetectorsCtx): SignalEvent[] 
       tpPips: 0,
       refLevel: dir === 'buy' ? hi : lo, levelKey: `AA:${c[i].t}`, knownAt,
       market: true,
-      reason: `اختراق ${fresh ? 'جديد' : 'مستمر'} لدونشييان ${P.entryN} ساعة ${dir === 'buy' ? 'للأعلى' : 'للأسفل'} عند ${closes[i].toFixed(2)} | ADX ${adxVal.toFixed(1)} — تنفيذ ماركت، وقف ${P.slAtrMult}×ATR`,
+      reason: `اختراق ${fresh ? 'جديد' : 'مستمر'} لدونشييان ${P.entryN}ساعة ${dir === 'buy' ? 'للأعلى' : 'للأسفل'} عند ${closes[i].toFixed(2)} | ADX ${adxVal.toFixed(1)} | قوة ${(Math.abs(closes[i] - (dir==='buy'?hi:lo))/a).toFixed(2)}×ATR — تنفيذ ماركت، وقف ${P.slAtrMult}×ATR`,
       expiresAt: knownAt + 60 * 60e3,
     });
   }
