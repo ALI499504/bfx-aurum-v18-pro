@@ -9,7 +9,17 @@
 // ============================================================
 import { NextRequest, NextResponse } from 'next/server';
 
-const PASSCODE = process.env.SITE_PASSWORD || 'black hat';
+// كلمة مرور إجبارية من المتغير SITE_PASSWORD — لا توجد قيمة افتراضية.
+// إذا لم يُضبط المتغير سيفشل الخادم مع رسالة واضحة.
+const PASSCODE = (() => {
+  const pw = process.env.SITE_PASSWORD?.trim();
+  if (!pw) {
+    // لا نرمي استثناءً هنا لتجنب توقف Edge Runtime، بل نعيد 401 دائمًا.
+    console.error('[SECURITY] SITE_PASSWORD غير مضبوط – جميع طلبات الموقع ستُرفض.');
+    return null as unknown as string; // سيؤدي إلى فشل أي تحقق لاحقًا.
+  }
+  return pw;
+})();
 const COOKIE = 'site_gate';
 
 // المفتاح = sha256('bfx-gate-v1|PASSCODE') — مطابق تماماً لاشتقاق node:crypto في gate.ts

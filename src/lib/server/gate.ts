@@ -1,8 +1,7 @@
 // ============================================================
 // بوابة الموقع — قفل كلمة السر للمالك ومدعوينه (server-only)
 // بطلب السيد: الموقع لا يُفتح إلا بكلمة سر من المالك نفسه.
-// كلمة السر من متغير البيئة SITE_PASSWORD وإلا الثابت المعتمد
-// من السيد في الكود (يصمد لإعادة تشغيل الحاوية).
+// كلمة السر **إجبارية** من متغير البيئة SITE_PASSWORD — بلا default.
 // الجلسة: كوكي httpOnly موقّع HMAC-SHA256 بصلاحية 30 يوماً،
 // والتحقق بمقارنة زمن-ثابت (timing-safe) — نفس نمط قفل جارفس.
 // ملاحظة: middleware يعمل على Edge Runtime لذا يعيد حساب
@@ -10,7 +9,24 @@
 // ============================================================
 import crypto from 'node:crypto';
 
-export const GATE_PASSCODE = process.env.SITE_PASSWORD || 'black hat';
+// كلمة سر إجبارية بلا fallback — أي نشر من دون SITE_PASSWORD يُرَدّ طلبه
+// (حزمة اللابتوب: 2-START.bat يقرأ password.txt ويضبط المتغير تلقائياً)
+export const GATE_PASSCODE = validatePasscode();
+
+function validatePasscode(): string {
+  const pw = process.env.SITE_PASSWORD?.trim();
+  if (!pw) {
+    throw new Error(`
+[SECURITY] SITE_PASSWORD غير مضبوط — المنصة مغلقة.
+اضبط المتغير: export SITE_PASSWORD="كلمة سر قوية" أو أنشئ password.txt في حزمة اللابتوب.
+`);
+  }
+  if (pw.length < 6) {
+    throw new Error('[SECURITY] كلمة السر قصيرة جداً (6 أحرف كحد أدنى)');
+  }
+  return pw;
+}
+
 export const GATE_COOKIE = 'site_gate';
 export const GATE_TTL_MS = 30 * 86400e3;   // جلسة شهر كامل من آخر فتح
 export const GATE_TTL_S = 60 * 60 * 24 * 30;
