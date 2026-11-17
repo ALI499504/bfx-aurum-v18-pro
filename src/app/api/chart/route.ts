@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getEngineData } from '@/lib/server/data';
-import { getLiveCandles, mt5Feed } from '@/lib/server/mt5feed';
+import { getLiveCandles, getClockSkewMs, mt5Feed } from '@/lib/server/mt5feed';
 import { TF_MS, TF } from '@/lib/engine/types';
 import { emaSeries } from '@/lib/engine/indicators';
 
@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
     '5m': data.c5, '15m': data.c15, '30m': data.c30, '1h': data.c1h,
     '4h': data.c4h, '1d': data.c1d, '1w': data.c1w, '1M': data.c1M,
   };
+  // شموع العرض: المحاذاة الزمنية والقصّ يتمّان داخل getLiveCandles (مصدر واحد)،
+  // فزمن آخر شمعة هو «الآن» الحقيقي لا ساعة الوسيط المتقدمة — وهذا سبب فراغ الشارت.
   const live = getLiveCandles(tf, 60);
   const arr = live ?? series[tf] ?? data.c15;
 
@@ -38,6 +40,9 @@ export async function GET(req: NextRequest) {
     tf,
     source: 'mt5-real',
     symbol: mt5Feed().symbol,
+    // فرق ساعة الجسر عن UTC بالدقائق (0 = متزامنة) — للتشخيص في الواجهة
+    clockSkewMin: Math.round(getClockSkewMs() / 60e3),
+    nowT: Date.now(),
     candles: slice,
     emaFast: emaFast.map((v, i) => ({ t: slice[i].t, v: Number.isFinite(v) ? v : null })),
     emaSlow: emaSlow.map((v, i) => ({ t: slice[i].t, v: Number.isFinite(v) ? v : null })),

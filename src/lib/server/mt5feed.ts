@@ -58,6 +58,14 @@ export const TF_KEYS = ['5m', '15m', '30m', '1h', '4h', '1d', '1w', '1M'];
 // singleton عبر globalThis كي يصمد أمام HMR في وضع التطوير
 const g = globalThis as unknown as { __bfxMt5Feed?: FeedState };
 
+/** فرق ساعة الوسيط عن UTC بالمللي ثانية (0 = متزامنة) — مشتق ومُخزَّن */
+let clockSkewMs = 0;
+
+/** أقصى فرق طبيعي بين فتح آخر شمعة 5m والآن (شمعة جارية + هامش الإرسال) */
+const SKEW_TOLERANCE_MS = 15 * 60_000;
+/** أقصى فرق مناطق زمنية مقبول (±14 ساعة) — حماية من قفزة بيانات شاذة */
+const SKEW_MAX_MS = 14 * 3600e3;
+
 // ---------- لقطة القرص (حفظ دوري + استعادة عند الإقلاع) ----------
 const SNAP_PATH = path.join(process.cwd(), 'db', 'mt5-feed-snapshot.json');
 
@@ -91,6 +99,11 @@ function restoreSnapshot(): FeedState | null {
     if (Array.isArray(j.deals)) s.deals = j.deals.slice(0, MAX_DEALS) as FeedState['deals'];
     s.updatedAt = num(j.updatedAt) || 0;
     console.log(`[mt5feed] استُعيدت ${n} شمعة حقيقية من لقطة القرص (${Object.keys(s.tfs).join('، ')})`);
+    // قياس انحراف ساعة الجسر فوراً من اللقطة: بعد إعادة تشغيل الخادم (أو إعادة نشر)
+    // قد تمرّ دقائق قبل أول دفعة جسر، وبلا هذا القياس يُعرض الشارت بساعة الوسيط
+    // المتقدمة (مستقبل وهمي) حتى تصل الدفعة الأولى.
+    const skew = syncClockSkewFromState(s, Date.now());
+    if (skew) console.log(`[mt5feed] ساعة الجسر متقدمة ${skew / 60e3} دقيقة عن UTC — ستُحاذى عند العرض`);
     return s;
   } catch {
     return null;
@@ -304,6 +317,9 @@ export function ingestMt5(body: {
   s.updatedAt = now;
   s.pushes += 1;
   if (!s.firstPushAt) s.firstPushAt = now;
+  // محاذاة ساعة الجسر: تُشتق من أحدث شمعة 5m مقابل ساعة الخادم (تتكيّف مع
+  // التوقيت الصيفي للوسيط تلقائياً). القراءة فقط — المخزون يبقى كما وصل.
+  syncClockSkew(now);
   scheduleSnapshotSave(); // لقطة دورية على القرص — الاستعادة فورية عند إعادة تشغيل الخادم
   return { stored, counts };
 }
@@ -332,12 +348,97 @@ export function isMt5Fresh(maxAgeMs = MT5_FRESH_MS): boolean {
   return s.updatedAt > 0 && Date.now() - s.updatedAt <= maxAgeMs;
 }
 
-/** شموع حية جاهزة للعرض لفريم معين — أو null إن لم تصل بيانات كافية وحديثة */
+// ============================================================
+// محاذاة ساعة الجسر — إصلاح «الشارت الفارغ» (2026-11-16)
+// ------------------------------------------------------------
+// الجسر (v21) يبث أزمنة الشموع والتيك بساعة سيرفر الوسيط (JustMarkets = EET/EEST،
+// أي +2/+3 عن UTC). القياس الحي: آخر شمعة 5m بطابع 02:35 بينما UTC الحقيقي 00:36
+// → فرق +119 دقيقة بالضبط.
+//
+// الأثر: الشارت يضع زمن آخر شمعة كحدّه الأيمن (Chart Shift)، فيمتد المحور الزمني
+// إلى «مستقبل» وهمي ساعتين، وتقع اللحظة الحقيقية داخل الماضي فيبدو الرسم فارغاً
+// أو مقطوعاً. وكل مقارنة بين زمن الشمعة و Date.now() تنحرف بالمقدار نفسه.
+//
+// الحل: نطرح الفرق عند القراءة فقط (مخزون الجسر يبقى كما وصل حرفياً)، والفرق
+// يُشتق تلقائياً من أحدث شمعة 5m مقابل ساعة الخادم، فيتكيّف وحده مع التوقيت
+// الصيفي للوسيط (EET/EEST) بلا أي إعداد يدوي ولا مساس بمنطق التداول.
+// ============================================================
+
+/**
+ * يقيس فرق ساعة الجسر ويحدّث القيمة المخزّنة. يُستدعى عند كل دفعة واردة.
+ *
+ * المصدر الأول: زمن التيك الحيّ — يُكتب لحظة وصوله، ففرقه عن ساعة الخادم هو
+ * انحراف الساعة خالصاً (بهامش الإرسال فقط). وهو الأدق لأن الشموع قد تكون
+ * آخرها قديماً حين يكون السوق مغلقاً.
+ * المصدر الثاني (احتياط): أحدث شمعة 5m — الشمعة الجارية تُفتح قبل «الآن» بما
+ * بين 0 و5 دقائق، فأي زيادة فوق الهامش انحراف.
+ * في الحالتين يُقرَّب الفرق لأقرب ساعة كاملة: فروق المناطق الزمنية دائماً كذلك.
+ */
+export function syncClockSkew(nowMs = Date.now()): number {
+  return syncClockSkewFromState(mt5Feed(), nowMs);
+}
+
+/** نفس القياس لكن على حالة صريحة — يخدم الاستعادة من اللقطة قبل تسجيل الحالة العامة */
+function syncClockSkewFromState(s: FeedState, nowMs: number): number {
+  const feedAge = s.updatedAt ? nowMs - s.updatedAt : Infinity;
+  const tickTime = s.tick && Number.isFinite(s.tick.time) && s.tick.time > 0 ? s.tick.time : 0;
+  // قراءة حديثة (بث حيّ أو لقطة عمرها دقائق): التيك هو المرجع الأدق
+  if (tickTime && feedAge <= 10 * 60_000) {
+    const delta = tickTime - nowMs;
+    if (Number.isFinite(delta) && Math.abs(delta) <= SKEW_MAX_MS) {
+      // انحراف حقيقي ⇒ قرّبه للساعة؛ متزامن ⇒ صفر. لا مساس بشذوذ خارج النطاق.
+      clockSkewMs = Math.abs(delta) > SKEW_TOLERANCE_MS ? Math.round(delta / 3600e3) * 3600e3 : 0;
+    }
+    return clockSkewMs;
+  }
+  // بلا تيك حديث: نحاول من أحدث شمعة 5m — لكن السوق المغلق يجعل آخر شمعة قديمة
+  // بساعات، وهذا ليس انحراف ساعة. لذلك لا نستخدمها إلا للكشف عن تقدّم مؤكد
+  // (شمعة أحدث من الآن) ولا نستخدمها أبداً لتصفير قياس صحيح قائم.
+  const c5 = s.tfs['5m'];
+  const lastT = c5 && c5.length ? c5[c5.length - 1].t : 0;
+  if (lastT && feedAge <= 10 * 60_000) {
+    const delta = lastT - nowMs;
+    if (Number.isFinite(delta) && Math.abs(delta) <= SKEW_MAX_MS && Math.abs(delta) > SKEW_TOLERANCE_MS) {
+      clockSkewMs = Math.round(delta / 3600e3) * 3600e3;
+    }
+  }
+  return clockSkewMs;
+}
+
+/** الفرق المقيس حالياً (ms) — للعرض التشخيصي فقط */
+export function getClockSkewMs(): number {
+  return clockSkewMs;
+}
+
+/** يحوّل زمن الشمعة/التيك من ساعة الوسيط إلى UTC حقيقي */
+export function alignMs(t: number): number {
+  return clockSkewMs ? t - clockSkewMs : t;
+}
+
+/**
+ * يقصّ الشموع التي تفتح بعد «الآن» الحقيقي ويحاذي أزمنة الباقي.
+ * احتياط أخير إن بقي انحراف غير مضاعف لساعة كاملة: لا يجوز أبداً أن يرسم
+ * الشارت شمعة لم تبدأ بعد.
+ */
+export function clipFuture(arr: FeedCandle[], nowMs = Date.now()): FeedCandle[] {
+  if (!arr.length) return arr;
+  let end = arr.length;
+  while (end > 1 && alignMs(arr[end - 1].t) > nowMs) end--;
+  const out: FeedCandle[] = new Array(end);
+  for (let i = 0; i < end; i++) {
+    const c = arr[i];
+    out[i] = { t: alignMs(c.t), o: c.o, h: c.h, l: c.l, c: c.c, v: c.v };
+  }
+  return out;
+}
+
+/** شموع حية جاهزة للعرض لفريم معين — أو null إن لم تصل بيانات كافية وحديثة.
+ *  الأزمنة مُحاذاة إلى UTC حقيقي، والشموع التي لم تبدأ بعد مقصوصة. */
 export function getLiveCandles(tf: string, minCount = 60): FeedCandle[] | null {
   if (!isMt5Fresh()) return null;
   const arr = mt5Feed().tfs[tf];
   if (!arr || arr.length < minCount) return null;
-  return arr;
+  return clipFuture(arr);
 }
 
 /** آخر شمعة معروضة مع دمج التيك الحي — للعرض فقط دون المساس بالمخزون.
@@ -346,12 +447,14 @@ export function getLiveCandles(tf: string, minCount = 60): FeedCandle[] | null {
 export function mergedLastCandle(a: FeedCandle[] | undefined, tick: FeedTick | null): FeedCandle | null {
   if (!a || !a.length) return null;
   const c0 = a[a.length - 1];
-  const base: FeedCandle = { t: c0.t, o: c0.o, h: c0.h, l: c0.l, c: c0.c, v: c0.v };
+  const t0 = alignMs(c0.t); // زمن UTC حقيقي — كي لا يقع الحدّ الأيمن للشارت في المستقبل
+  const base: FeedCandle = { t: t0, o: c0.o, h: c0.h, l: c0.l, c: c0.c, v: c0.v };
   if (!tick || !Number.isFinite(tick.bid) || tick.bid <= 0) return base;
   // ندمج فقط إن كان التيك لا يسبق فتح آخر شمعة (شمعة تشكّل الآن فعلاً)
+  // المقارنة على الساعتين نفسيهما قبل التحويل: tick.time و c0.t كلاهما بساعة الوسيط
   if (Number.isFinite(tick.time) && tick.time > 0 && tick.time < c0.t) return base;
   return {
-    t: c0.t, o: c0.o,
+    t: t0, o: c0.o,
     h: Math.max(c0.h, tick.bid),
     l: Math.min(c0.l, tick.bid),
     c: tick.bid, v: c0.v,
@@ -368,7 +471,9 @@ export function getMt5Status() {
     broker: s.broker,
     account: s.account,
     bridgeV: s.bridgeV,
-    tick: s.tick,
+    // التيك بزمن UTC حقيقي — الواجهة تقارنه بساعة المتصفح مباشرة
+    tick: s.tick ? { ...s.tick, time: alignMs(s.tick.time) } : null,
+    clockSkewMin: Math.round(clockSkewMs / 60e3),
     updatedAt: s.updatedAt || null,
     ageMs: age,
     pushes: s.pushes,

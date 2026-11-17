@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { isMt5Fresh, mergedLastCandle, mt5Feed, TF_KEYS } from '@/lib/server/mt5feed';
+import { alignMs, getClockSkewMs, isMt5Fresh, mergedLastCandle, mt5Feed, TF_KEYS } from '@/lib/server/mt5feed';
 import { currentSession, syriaHour } from '@/lib/engine/sessions';
 
 export const dynamic = 'force-dynamic';
@@ -41,7 +41,9 @@ export async function GET() {
         changePct: open ? +(((bid - open) / open) * 100).toFixed(2) : null,
         session: currentSession(t),
         syriaHour: syriaHour(t),
-        tick: s.tick,
+        // التيك بزمن UTC حقيقي (ساعة الوسيط تُحاذى في طبقة الجسر)
+        tick: { ...s.tick, time: alignMs(s.tick.time) },
+        clockSkewMin: Math.round(getClockSkewMs() / 60e3),
         serverTime: t,
         // آخر شمعة لكل فريم (مدموجة مع تيك البث الحي) — تحديث الشمعة الجارية بلا إعادة تحميل
         last: Object.fromEntries(TF_KEYS.map(tf => {
