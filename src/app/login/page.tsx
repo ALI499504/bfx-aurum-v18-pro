@@ -1,4 +1,5 @@
 // بوابة الدخول — صفحة كلمة السر (بطلب السيد: لا يفتح الموقع إلا بكلمة سره)
+import Image from 'next/image';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,10 +16,8 @@ export default async function LoginPage({ searchParams }: {
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-[#2a3450] bg-[#0d1322] shadow-2xl overflow-hidden">
           <div className="px-6 py-5 border-b border-[#1c2438] flex items-center gap-3">
-            <span className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#d9b45c] to-[#a8842f] flex items-center justify-center">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/aurum-bull.png" alt="BFX AURUM" className="w-8 h-8 select-none pointer-events-none" draggable={false} />
-            </span>
+            <Image src="/bull.svg" alt="BFX AURUM — رأس الثور" width={40} height={40}
+              className="w-10 h-10 drop-shadow-[0_0_8px_rgba(217,180,92,0.28)]" priority />
             <div>
               <div className="text-[15px] font-bold text-[#e9edf4]" dir="ltr">BFX AURUM <span className="text-[#d9b45c]">v18 PRO</span></div>
               <div className="text-[11px] text-[#8b94a8]">منصة بوت الذهب XAUUSD الخاصة</div>

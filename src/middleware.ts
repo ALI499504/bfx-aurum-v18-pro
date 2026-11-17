@@ -59,11 +59,17 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/api/system/health') ||
     pathname.startsWith('/_next') ||
     pathname === '/favicon.ico' ||
-    pathname === '/icon.png' ||        // أيقونة الموقع (Next App Router)
-    pathname === '/apple-icon.png' ||  // أيقونة iOS
-    pathname === '/aurum-bull.png' ||  // لوغو الثور الرسمي — يظهر في صفحة الدخول أيضاً
+    pathname === '/robots.txt' ||
+    // أيقونات الموقع (Next App Router) + شعارات الثور — تُحمّل قبل الدخول
+    // وإلا حجبها الـmiddleware بـ302 فظهرت صفحة الدخول بلا شعار
+    pathname === '/icon.png' ||
+    pathname === '/apple-icon.png' ||
+    pathname === '/bull.svg' ||
+    pathname === '/aurum-bull.png' ||
     pathname === '/aurum-badge.png' ||
-    pathname === '/robots.txt'
+    pathname.startsWith('/icon') ||
+    pathname.startsWith('/apple-icon') ||
+    pathname.startsWith('/brand/')
   ) return NextResponse.next();
 
   if (await verifyCookie(req.cookies.get(COOKIE)?.value)) return NextResponse.next();
@@ -84,5 +90,5 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   // كل المسارات ما عدا الملفات الثابتة — الفحص الدقيق داخل middleware
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|robots.txt|login|api/auth/gate|api/mt5/|api/system/health).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|robots.txt|bull\\.svg|aurum-bull\\.png|aurum-badge\\.png|icon|apple-icon|brand|login|api/auth/gate|api/mt5/|api/system/health).*)'],
 };
