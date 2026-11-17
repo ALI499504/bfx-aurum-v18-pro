@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import { loadData, runBacktest, resetEngineCache } from './src/lib/engine/backtest';
+import { DEFAULT_SETTINGS } from './src/lib/engine/rules';
+import type { Candle } from './src/lib/engine/types';
+const j = JSON.parse(fs.readFileSync('/tmp/snap.json', 'utf8')) as { tfs: Record<string, number[][]> };
+const toC = (rows: number[][]): Candle[] => rows.map(r => ({ t: r[0], o: r[1], h: r[2], l: r[3], c: r[4], v: r[5] }));
+const files: Record<string, Candle[]> = {};
+for (const k of Object.keys(j.tfs)) files[k] = toC(j.tfs[k]);
+const c5 = files['5m'];
+const [f, s] = (process.argv[2] ?? '20,90').split(',').map(Number);
+resetEngineCache();
+const data = loadData(files);
+const st = JSON.parse(JSON.stringify(DEFAULT_SETTINGS));
+st.indicators.emaFast = f; st.indicators.emaSlow = s;
+const r = runBacktest(data as never, st, c5[c5.length - 1].t, []);
+console.log(`${f}/${s}|${Math.round(r.stats.netPnl)}|${r.stats.totalTrades}|${r.stats.profitFactor.toFixed(2)}|${r.stats.maxDrawdownPct.toFixed(1)}|${r.stats.winRate.toFixed(1)}`);

@@ -180,6 +180,9 @@ export function loadData(files: Record<string, Candle[]>): EngineData {
   return data;
 }
 
+/** فترات EMA الفعّالة — تُضبط من إعدادات التشغيل قبل أي حساب (20/90 افتراضياً) */
+let EMA_CFG = { fast: 20, slow: 90 };
+
 function ensurePrecompute(data: EngineData) {
   if (!cache.struct1h) cache.struct1h = analyzeStructure(data.c1h, '1h');
   if (!cache.struct4h) cache.struct4h = analyzeStructure(data.c4h, '4h');
@@ -214,8 +217,11 @@ function ensurePrecompute(data: EngineData) {
       cache.preTrend.set(z.startT, d);
     }
   }
-  if (!cache.ema4h) cache.ema4h = { fast: emaSeries(data.c4h, 20), slow: emaSeries(data.c4h, 90) };
-  if (!cache.ema1d) cache.ema1d = { fast: emaSeries(data.c1d, 20), slow: emaSeries(data.c1d, 90) };
+  // ملاحظة إصلاح (2026-11-17): كانت الفترات مثبّتة 20/90 هنا فتتجاهل
+  // settings.indicators.emaFast/emaSlow تماماً — أي أن تغيير الفترات من الواجهة
+  // لم يكن له أي أثر على القرار. الآن تُمرَّر عبر emaCfg (تقصير/تطويل حقيقي).
+  if (!cache.ema4h) cache.ema4h = { fast: emaSeries(data.c4h, EMA_CFG.fast), slow: emaSeries(data.c4h, EMA_CFG.slow) };
+  if (!cache.ema1d) cache.ema1d = { fast: emaSeries(data.c1d, EMA_CFG.fast), slow: emaSeries(data.c1d, EMA_CFG.slow) };
 }
 
 function ensureSignals(data: EngineData, settings: Settings): GeneratedSignals {
@@ -364,6 +370,14 @@ export function runBacktest(
   /** نافذة تقرير اختيارية: المؤشرات تُحسب على كامل البيانات لكن لا صفقات تُفتح خارج [fromT, toT] */
   range?: { fromT?: number; toT?: number },
 ): BacktestResult {
+  // فترات EMA من الإعدادات — تُضبط قبل أي حساب كي يحترمها تحليل الهيكل والبوابات
+  const emaFastCfg = settings.indicators.emaFast;
+  const emaSlowCfg = settings.indicators.emaSlow;
+  if (Number.isFinite(emaFastCfg) && Number.isFinite(emaSlowCfg)
+      && (EMA_CFG.fast !== emaFastCfg || EMA_CFG.slow !== emaSlowCfg)) {
+    EMA_CFG = { fast: emaFastCfg, slow: emaSlowCfg };
+    cache.ema4h = undefined; cache.ema1d = undefined; // إعادة حساب بالفترات الجديدة
+  }
   ensurePrecompute(data);
   // إصلاح جذري: الإشارات تُجمع من 23 كاشفاً كلٌّ بتسلسله الزمني الخاص — الدمج غير مرتب!
   // بلا ترتيب، مؤشر الاستهلاك يبتلع كل إشارات أول كاشف في الشمعة الأولى ثم يتعثر
