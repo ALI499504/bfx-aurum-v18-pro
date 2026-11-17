@@ -78,7 +78,7 @@ export function LiveSignalsWindow() {
   const [loading, setLoading] = useState(false);
   const [updatedAt, setUpdatedAt] = useState(0);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (retry = 0) => {
     setLoading(true);
     try {
       const r = await fetch('/api/signals', { cache: 'no-store' });
@@ -87,6 +87,11 @@ export function LiveSignalsWindow() {
         setData(j as SignalsPayload);
         setErr(null);
         setUpdatedAt(Date.now());
+      } else if (j.warming) {
+        // الخادم يبني النتيجة في الخلفية (لا يعطّل بقية الصفحات) — نعيد المحاولة
+        // بصمت بدل إظهار خطأ، فنصل للحمولة بعد ثوانٍ دون أن يلاحظ المستخدم شيئاً.
+        if (retry < 6) setTimeout(() => { void load(retry + 1); }, j.retryAfterMs ?? 3000);
+        else setErr('الإشارات قيد البناء — أعد المحاولة بعد لحظات');
       } else {
         setErr(j.error ?? 'تعذر جلب الإشارات');
       }
@@ -125,7 +130,7 @@ export function LiveSignalsWindow() {
               <span className="text-[#d9b45c]/80"> التنفيذ حالياً يدوي عبر منصتك — الجسر يستقبل البيانات ولا يرسل أوامر.</span>
             </p>
           </div>
-          <button onClick={load} disabled={loading}
+          <button onClick={() => { void load(); }} disabled={loading}
             className="shrink-0 flex items-center gap-1.5 rounded-lg border border-[#2a3550] bg-[#101726] hover:border-[#d9b45c]/50 text-[#e9edf4] text-[11px] font-bold px-3 py-2">
             <RefreshCw className={cn('w-3.5 h-3.5', loading && 'animate-spin')} />
             تحديث

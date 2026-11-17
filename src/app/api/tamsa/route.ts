@@ -10,7 +10,7 @@
 //   فورية والمعالجة الثقيلة لا تُنفّذ إلا مرة واحدة لكل شمعة جديدة.
 // ============================================================
 import { NextResponse } from 'next/server';
-import { getEngineData, getDataStatus } from '@/lib/server/data';
+import { getEngineWindow, getDataStatus } from '@/lib/server/data';
 import { loadBotSettings } from '@/lib/server/backtestRunner';
 import { mt5Feed, isMt5Fresh } from '@/lib/server/mt5feed';
 import { tamsaEngine } from '@/lib/engine/tamsa-engine';
@@ -95,7 +95,11 @@ export async function GET(req: Request) {
   // نافذة تحليل مخصصة: السقف اليومي 50 صفقة والستوب 72 ساعة، فأي بنية
   // أقدم من 30 يوماً لا تُنتج إشارة قابلة للتنفيذ. قصّ النافذة خفض التحليل
   // من 4787ms إلى 409ms (11.7×) بنفس عدد المقترحات بالضبط.
-  const data = getEngineData(30);
+  //
+  // قراءة-فقط: لا تمس كاش المحرك. كان getEngineData(30) يهدم الكاش الذي
+  // تستخدمه بقية النقاط بنافذة 120 يوماً، فيُعاد بناؤه 9–13 ثانية متزامنة
+  // عند كل تنقل بين TAMSA والشارت — وهذا سبب تجميد /api/chart الثاني.
+  const data = getEngineWindow(30);
   if (!data) {
     const st = getDataStatus();
     return NextResponse.json({

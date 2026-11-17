@@ -33,5 +33,13 @@ export async function register() {
       const { prewarmBacktest } = await import('@/lib/server/backtestCache');
       setTimeout(() => { prewarmBacktest().catch(() => { /* اختياري */ }); }, 20_000);
     } catch { /* التسخين اختياري */ }
+    // تسخين كاش الإشارات: يبني نتيجة /api/signals صامتاً بعد الإقلاع كي لا يدفع
+    // أول زائر ثمن البناء، ولا تظهر له حالة الانتظار إطلاقاً.
+    try {
+      const { warmSignals } = await import('@/lib/server/signalWarm');
+      const port = process.env.PORT ?? '3000';
+      const base = process.env.BFX_BASE_URL ?? `http://127.0.0.1:${port}`;
+      warmSignals(() => base);
+    } catch { /* التسخين اختياري */ }
   }
 }

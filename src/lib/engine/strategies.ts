@@ -1183,6 +1183,58 @@ function detectFib(inp: DetectorsInput, ctx: DetectorsCtx, st: 'L' | 'M'): Signa
     // نتابع تقدمياً على 15M: لكل مستوى نحدد إن كان مختبراً قبل آسيا (يُحظر) ثم
     // نطلق الارتداد/الكسر في آسيا وفق القواعد.
     const seen = new Set<string>();
+    // ---------------- فهارس مسبقة (مرة واحدة لكل استدعاء) ----------------
+    // قبل الإصلاح كانت الحلقة تمرّ على كل شموع 15M اللاحقة لكل (مرساة × مستوى):
+    // 2804 تركيبة × ~7900 شمعة ≈ 22 مليون تكرار، وفي كل تكرار تُبنى سلسلتا
+    // مفاتيح نصية جديدة وتُحسب ساعة دمشق — 6–12 ثانية متزامنة تُجمّد حلقة Node
+    // الواحدة فيتوقف /api/chart. الشروط أدناه نفسها حرفياً:
+    //   آسيا   = 01:00 ≤ ساعة دمشق < 10:00
+    //   ملامسة = شمعة بـ h ≥ 10 تلامس الخط ±2 بيب → تحظر التداول في آسيا بعدها
+    const all15 = inp.c15;
+    const asiaBars: number[] = [];   // فهارس شموع آسيا
+    const asiaDays: number[] = [];   // يوم آسيا (توقيت دمشق) لكل شمعة آسيا
+    const asiaHours: number[] = [];  // ساعة دمشق لكل شمعة آسيا
+    const meetBars: number[] = [];   // فهارس شموع h ≥ 10
+    for (let i = 0; i < all15.length; i++) {
+      const h = syriaHour(all15[i].t);
+      if (h >= 1 && h < 10) {
+        asiaBars.push(i); asiaDays.push(Math.floor((all15[i].t + 3 * 3600e3) / 86400e3)); asiaHours.push(h);
+      } else if (h >= 10) meetBars.push(i);
+    }
+    /** أول عنصر في مصفوفة مرتّبة ≥ v (بحث ثنائي) */
+    const lowerBound = (arr: number[], v: number): number => {
+      let lo = 0, hi = arr.length - 1, res = arr.length;
+      while (lo <= hi) { const mid = (lo + hi) >> 1; if (arr[mid] >= v) { res = mid; hi = mid - 1; } else lo = mid + 1; }
+      return res;
+    };
+    // كتل على شموع h≥10 مع أدنى low وأعلى high لكل كتلة: تخطّي كتل كاملة يستحيل
+    // أن تحتوي ملامسة بدل مسحها شمعةً شمعة (النتيجة مطابقة للمسح الخطي حرفياً).
+    const MEET_BLOCK = 64;
+    const nMeet = meetBars.length;
+    const nBlocks = Math.ceil(nMeet / MEET_BLOCK);
+    const blockLow = new Float64Array(nBlocks).fill(Infinity);
+    const blockHigh = new Float64Array(nBlocks).fill(-Infinity);
+    for (let i = 0; i < nMeet; i++) {
+      const b = all15[meetBars[i]];
+      const blk = (i / MEET_BLOCK) | 0;
+      if (b.l < blockLow[blk]) blockLow[blk] = b.l;
+      if (b.h > blockHigh[blk]) blockHigh[blk] = b.h;
+    }
+    /** أول شمعة h≥10 عند/بعد k0 تلامس الخط ±2 بيب — أو -1 (مطابق للمسح الخطي) */
+    const firstTouchFrom = (k0: number, line: number): number => {
+      const margin = pips(2);
+      let i = Math.max(0, k0);
+      while (i < nMeet) {
+        const blk = (i / MEET_BLOCK) | 0;
+        const blkEnd = Math.min((blk + 1) * MEET_BLOCK, nMeet);
+        if (blockLow[blk] > line + margin || blockHigh[blk] < line - margin) { i = blkEnd; continue; }
+        for (; i < blkEnd; i++) {
+          const b = all15[meetBars[i]];
+          if (b.l <= line + margin && b.h >= line - margin) return meetBars[i];
+        }
+      }
+      return -1;
+    };
     for (const tf of ['1d', '4h', '1w'] as TF[]) {
       const c = tf === '1d' ? inp.c1d : tf === '4h' ? inp.c4h : inp.c1w;
       for (const a of findFibAnchors(c, tf, [])) {
@@ -1191,54 +1243,56 @@ function detectFib(inp: DetectorsInput, ctx: DetectorsCtx, st: 'L' | 'M'): Signa
         seen.add(waveId);
         for (const r of levels) {
           const line = fibLevel(a, r);
+          // أول شمعة h≥10 تلامس الخط بعد تأكيد المرساة — تُحسب مرة واحدة للمستوى
+          // (كانت تُفحص في كل تكرار من حلقة الشموع). الملامسة تحظر آسيا بعدها.
+          let touchIdx = -1;
+          {
+            let kFrom = lowerBound(meetBars, idxFrom(all15, a.knownAt));
+            for (let guard = 0; guard < 64 && kFrom < nMeet; guard++) {
+              const hit = firstTouchFrom(kFrom, line);
+              if (hit < 0) break;
+              if (all15[hit].t + ms15 > a.knownAt) { touchIdx = hit; break; }
+              kFrom = lowerBound(meetBars, hit + 1); // ملامسة قبل التأكيد لا تُحتسب
+            }
+          }
           // نافذة العزل: من تأكيد المرساة حتى نهاية الجلسة الآسيوية الأولى التالية
           // نتابع شموع 15M ونحدد: (أ) اختبر في لندن/تداخل/نيويورك قبل آسيا = مُحظر،
           // (ب) أول اقتراب ≤20 بيب في آسيا = لحظة الارتداد،
           // (ج) كسر بجسم 15M ≥30 + تجاوز 100–300 = لحظة الكسر.
-          let preTested = false;        // مختبر قبل آسيا → مُحظر في آسيا
           let revDone = false, brkDone = false;
-          let asiaDayKey = '';          // يوم آسيا الحالي (بتوقيت دمشق) — لكل يوم آسيا جديد تصفير
-          const startIdx = idxFrom(inp.c15, a.knownAt);
-          for (let bi = startIdx; bi < inp.c15.length; bi++) {
-            const bar = inp.c15[bi];
+          let asiaDayKey = '';          // يوم آسيا الحالي (توقيت دمشق) — لكل يوم آسيا جديد تصفير
+          // المرور على شموع آسيا اللاحقة للتأكيد فقط: شموع h<1 لا تفعل شيئاً في
+          // الفرع الأصلي، وملامسة h≥10 صارت قيمة واحدة محسوبة (touchIdx).
+          const startAsia = lowerBound(asiaBars, idxFrom(all15, a.knownAt));
+          for (let ai = startAsia; ai < asiaBars.length; ai++) {
+            const bi = asiaBars[ai];
+            const bar = all15[bi];
             const bt = bar.t + ms15;
             if (bt <= a.knownAt) continue;
-            const h = syriaHour(bar.t);
-            const dnum = Math.floor((bar.t + 3 * 3600e3) / 86400e3);
-            const inAsia = h >= 1 && h < 10;
-            // اليوم الآسيوي الجديد: إن كان المستوى مختبراً قبل آسيا يُحظر كلياً في ذلك اليوم
-            if (inAsia) {
-              const ak = `${dnum}`;
-              if (ak !== asiaDayKey) {
-                asiaDayKey = ak;
-                // بمجرد دخول آسيا: إن كان قد مُسّ قبل ذلك في غير آسيا (لندن/تداخل/نيويورك)
-                // نُحجبه لهذا اليوم — يستمر الحظر طوال آسيا (قاعدة العزل الآسيوي)
-              }
-            } else if (h >= 10) {
-              // خارج آسيا (لندن/تداخل/نيويورك): ملامسة الخط تُستهلك المستوى لآسيا التالية
-              const touched = bar.l <= line + pips(2) && bar.h >= line - pips(2);
-              if (touched) preTested = true;
-              continue;
-            }
-            if (!inAsia) continue;
-            if (preTested) break; // مختبر سابقاً → لا تداول في آسيا (الدليل ص2167–2178)
+            const h = asiaHours[ai];
+            const dnum = asiaDays[ai];
+            if (touchIdx >= 0 && touchIdx < bi) break; // مختبر سابقاً → لا تداول في آسيا (ص2167–2178)
+            const ak = `${dnum}`;
+            if (ak !== asiaDayKey) asiaDayKey = ak; // يوم آسيا جديد
             const distPips = Math.abs(bar.c - line) / PIP;
             const bodyUp = (bar.c - line) / PIP, totalUp = (bar.h - line) / PIP;
             const bodyDown = (line - bar.c) / PIP, totalDown = (line - bar.l) / PIP;
             const expAsia = bt + Math.max(1, 10 - h) * 3600e3;
-            const revKey = `M:${tf}:${waveId}:${r}:rev:${asiaDayKey}`;
-            const brkKey = `M:${tf}:${waveId}:${r}:brk:${asiaDayKey}`;
+            // المفاتيح تُبنى عند الحاجة فقط: بناؤها كل تكرار كان 13 مليون سلسلة نصية
+            // مهدرة (الكلفة الحقيقية للتجميد) — ولا تُستخدم إلا داخل الفرعين أدناه.
+            const revKey = (): string => `M:${tf}:${waveId}:${r}:rev:${asiaDayKey}`;
+            const brkKey = (): string => `M:${tf}:${waveId}:${r}:brk:${asiaDayKey}`;
             // الارتداد: مرة واحدة لكل مستوى في الجلسة — الاتجاه من جهة السعر
             if (!revDone && distPips <= P.exec.revEntryPips) {
               revDone = true;
               const dir: 'buy' | 'sell' = bar.c > line ? 'buy' : 'sell';
               const entry = dir === 'buy' ? line + pips(P.exec.revEntryPips) : line - pips(P.exec.revEntryPips);
               const g = gateDir(ctx, 'M', 'rev', P.rev, dir, bt);
-              if (!g.ok) consumeLevel('M', revKey);
+              if (!g.ok) consumeLevel('M', revKey());
               else push(out, {
                 strategy: 'M', case: 'rev', scenario: g.scenario, dir,
                 entry, slPips: P.exec.revEntryPips + P.exec.revSlPips, tpPips: P.exec.revTpPips,
-                refLevel: line, levelKey: revKey, knownAt: bt,
+                refLevel: line, levelKey: revKey(), knownAt: bt,
                 reason: `فيبو آسيا ${r}% (${line.toFixed(2)}) لموجة ${a.dir === 'up' ? 'صاعدة' : 'هابطة'} ${tf} معتمدة BOS — ارتداد ماركت قبل الخط بـ${P.exec.revEntryPips} بيب، وقف ${P.exec.revSlPips} خلفه، هدف ${P.exec.revTpPips} (ينتهي بنهاية آسيا)`,
                 expiresAt: expAsia,
               });
@@ -1252,11 +1306,11 @@ function detectFib(inp: DetectorsInput, ctx: DetectorsCtx, st: 'L' | 'M'): Signa
                 const dir: 'buy' | 'sell' = brkUp ? 'buy' : 'sell';
                 const entry = dir === 'buy' ? line + pips(P.exec.brkEntryPips) : line - pips(P.exec.brkEntryPips);
                 const g = gateDir(ctx, 'M', 'brk', P.brk, dir, bt);
-                if (!g.ok) consumeLevel('M', brkKey);
+                if (!g.ok) consumeLevel('M', brkKey());
                 else push(out, {
                   strategy: 'M', case: 'brk', scenario: g.scenario, dir,
                   entry, slPips: P.exec.brkEntryPips + P.exec.brkSlPips, tpPips: P.exec.brkTpPips,
-                  refLevel: line, levelKey: brkKey, knownAt: bt,
+                  refLevel: line, levelKey: brkKey(), knownAt: bt,
                   reason: `كسر فيبو آسيا ${r}% (${line.toFixed(2)}) ${brkUp ? 'صعوداً' : 'هبوطاً'} بإغلاق 15M ≥${P.exec.breakBodyMin} وتجاوز ${P.exec.breakTotalMin}–${P.exec.breakTotalMax} — إعادة اختبار قبل الخط بـ${P.exec.brkEntryPips} بيب، وقف ${P.exec.brkSlPips}، هدف ${P.exec.brkTpPips}`,
                   expiresAt: expAsia,
                 });

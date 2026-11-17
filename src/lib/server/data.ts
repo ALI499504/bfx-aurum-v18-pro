@@ -34,7 +34,17 @@ const ENGINE_FRESH_MS = 30 * 60_000;
  */
 export const ENGINE_WINDOW_DAYS = 120;
 
-export function getEngineData(maxDays: number = ENGINE_WINDOW_DAYS): EngineData | null {
+/**
+ * قصّ/بناء نافذة تحليل من البث الحيّ — الدالة الوحيدة التي تعرف شكل النافذة،
+ * تستخدمها نقطة القراءة-فقط ونقطة الكاش معاً فتتطابق نتيجتهما حرفياً.
+ *
+ * سبب الفصل (إصلاح 2026-11-16): كان /api/tamsa يطلب نافذة 30 يوماً بينما تطلب
+ * بقية النقاط 120 يوماً، وكانت كل قراءة بنافذة مختلفة تهدم كاش المحرك (تحليل
+ * الهيكل + 29 كاشفاً + الإشارات) فيُعاد بناؤه 9–13 ثانية متزامنة — فيتجمّد
+ * الخيط الواحد ويتوقف /api/chart. الآن من يحتاج نافذة أخرى يقرأها مباشرة من
+ * البث دون المساس بالكاش، ومن يشارك النافذة الافتراضية يظل دافئاً دائماً.
+ */
+function buildWindow(maxDays: number): EngineData | null {
   if (!isMt5Fresh(ENGINE_FRESH_MS)) return null;
   const s = mt5Feed();
   const raw: Record<string, Candle[]> = {};
@@ -75,13 +85,31 @@ export function getEngineData(maxDays: number = ENGINE_WINDOW_DAYS): EngineData 
     if (arr.length < (spanMs / TF_MS[tf]) * 0.5) delete raw[tf];
   }
 
+  return loadData(raw);
+}
+
+/**
+ * نافذة تحليل بلا أي مساس بكاش المحرك — للقراءة-فقط.
+ * المستهلك الذي يحتاج نافذة مختلفة عن الافتراضية (TAMSA: 30 يوماً) يستدعيها
+ * بدل getEngineData، فيرى نفس الشموع تماماً ويبقى كاش بقية النقاط دافئاً.
+ */
+export function getEngineWindow(maxDays: number): EngineData | null {
+  return buildWindow(maxDays);
+}
+
+export function getEngineData(maxDays: number = ENGINE_WINDOW_DAYS): EngineData | null {
+  if (!isMt5Fresh(ENGINE_FRESH_MS)) return null;
+  const s = mt5Feed();
+  const c5raw = s.tfs['5m'];
+  if (!c5raw || c5raw.length < MIN_5M) return null;
   // مفتاح إعادة البناء: آخر شمعة 5m مغلقة + العدد — كي لا تُعاد
   // عملية التحليل الثقيلة مع كل نبضة بث (2ث) بل عند شمعة جديدة فقط
-  const c5 = raw['5m'];
-  const key = c5[c5.length - 1].t * 1000 + c5.length;
+  const key = c5raw[c5raw.length - 1].t * 1000 + c5raw.length;
   if (memory.data && memory.key === key && memory.maxDays === maxDays) return memory.data;
+  const built = buildWindow(maxDays);
+  if (!built) return null;
   resetEngineCache();
-  memory.data = loadData(raw);
+  memory.data = built;
   memory.key = key;
   memory.maxDays = maxDays;
   return memory.data;

@@ -26,6 +26,14 @@ export const maxDuration = 120;
 // كاش عالمي يصمد أمام HMR: الإرجاع فوري دائماً (نتيجة آخر شمعة 5m) والتحديث
 // الثقيل يجري في الخلفية مرة واحدة (single-flight) — لا تجميد لحلقة الأحداث
 // كما كان يحدث سابقاً عندما كان كل طلب يعيد تشغيل الباك تيست الكامل بشكل متزامن.
+//
+// إصلاح «تجميد الشارت عند فتح تبويب الإشارات» (2026-11-16):
+//   كان الطلب البارد (أول طلب بعد إقلاع الخادم، أو بعد شمعة جديدة بلا كاش)
+//   يستدعي compute() و«ينتظره» داخل حلقة الطلب — والباك تيست يحسب 29 كاشفاً
+//   متزامناً (6–12 ثانية) فيتجمّد الخيط الواحد ويصبح /api/chart بلا استجابة.
+//   الآن: أي طلب بارد يطلق الحساب في الخلفية ويُعيد فوراً 202 مع السبب، وحلقة
+//   الطلب لا تنتظر عملاً ثقيلاً أبداً. Warming عند الإقلاع أدناه يبني النتيجة
+//   قبل أن يفتح المستخدم التبويب، فلا يرى حتى الـ202.
 const gSig = globalThis as unknown as { __bfxSigCache?: { key: number; payload: unknown; busy: Promise<void> | null } };
 const sigCache = gSig.__bfxSigCache ?? (gSig.__bfxSigCache = { key: -1, payload: null as unknown, busy: null as Promise<void> | null });
 
@@ -376,8 +384,19 @@ export async function GET() {
     return NextResponse.json(sigCache.payload as object);
   }
 
-  // باردة (بعد إعادة تشغيل الخادم): حساب أول مرة — النافذة محدودة فيستغرق ثوانٍ لا دقائق
-  await compute();
-  if (sigCache.payload) return NextResponse.json(sigCache.payload as object);
-  return NextResponse.json({ ok: false, error: 'تعذر بناء الإشارات الآن — أعد المحاولة بعد لحظات' }, { status: 503 });
+  // باردة (بعد إعادة تشغيل الخادم أو شمعة جديدة): لا ننتظر داخل حلقة الطلب أبداً.
+  // نطلق الحساب مرة واحدة في الخلفية ونُعيد فوراً — الشارت وكل النقاط الأخرى تبقى
+  // مستجيبة أثناء بناء الإشارات (كان الانتظار هنا يجمّد Node 6–12 ثانية).
+  if (!sigCache.busy) {
+    sigCache.busy = compute()
+      .catch(() => { /* الطلب التالي سيعيد المحاولة */ })
+      .finally(() => { sigCache.busy = null; });
+  }
+  return NextResponse.json({
+    ok: false,
+    warming: true,
+    cached: false,
+    error: 'الإشارات قيد البناء الآن — تُعرض في الطلب التالي بعد ثوانٍ (الحساب لا يعطّل بقية الصفحات)',
+    retryAfterMs: 3000,
+  }, { status: 202, headers: { 'Retry-After': '3' } });
 }
