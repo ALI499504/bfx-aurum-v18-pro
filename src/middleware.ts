@@ -72,6 +72,9 @@ export async function middleware(req: NextRequest) {
     pathname === '/robots.txt' ||
     // أيقونات الموقع (Next App Router) + شعارات الثور — تُحمّل قبل الدخول
     // وإلا حجبها الـmiddleware بـ302 فظهرت صفحة الدخول بلا شعار
+    // ملف النموذج المُدرَّب — يجب أن يُحمَّل بلا كلمة سر وإلا فشل تحميله
+    // في المتصفح بصمت وعمل الفلتر على Surrogate بدل النموذج الحقيقي.
+    pathname === '/lightgbm-model-xauusd.json' ||
     pathname === '/icon.png' ||
     pathname === '/apple-icon.png' ||
     pathname === '/bull.svg' ||
