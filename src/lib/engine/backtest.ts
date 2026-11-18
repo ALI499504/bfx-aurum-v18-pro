@@ -18,14 +18,15 @@ import { MarketRegime, detectRegime } from './regime-detector';
 function getBlockedStrategies(regime: MarketRegime): Set<string> {
   switch (regime) {
     case 'range_low_vol':
-      return new Set(['AA', 'W', 'X', 'Y', 'E']); // التrending تفشل في العرض
+      // Range منخفض التذبذب: AA و W و X و Y تفشل فقط — E و F و K تعمل جيداً
+      return new Set(['AA', 'W', 'X', 'Y']);
     case 'range_high_vol':
-      return new Set(['AA', 'W', 'E']); // AA و E تفشل في التذبذب
+      return new Set(['AA', 'W', 'X', 'Y']);
     case 'weak_bull':
     case 'weak_bear':
-      return new Set(['AA', 'W', 'F']); // AA و W ضعيفة في الترند الضعيف
+      return new Set(['AA', 'W', 'X', 'Y']);
     default:
-      return new Set(); // strong_bull, strong_bear, volatile_breakout: كل شيء مسموح
+      return new Set();
   }
 }
 
