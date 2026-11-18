@@ -494,9 +494,10 @@ export class LightGBMFilter {
       const fs = require('node:fs') as typeof import('node:fs');
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const path = require('node:path') as typeof import('node:path');
+      // مسار واحد فقط: public/ هو ما يخدمه Next وما يُنسخ إلى standalone.
+      // وجود نسخة ثانية في src/ كان يضاعف حجم الريبو بلا فائدة.
       const candidates = [
         path.join(process.cwd(), 'public', 'lightgbm-model-xauusd.json'),
-        path.join(process.cwd(), 'src', 'lib', 'engine', 'lightgbm-model-xauusd.json'),
       ];
       for (const file of candidates) {
         if (!fs.existsSync(file)) continue;
