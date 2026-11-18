@@ -9,9 +9,25 @@ import { DetectorsInput, runAllDetectors, signalToSetup, resetTamsaState, consum
 import { DEFAULT_TAMSA_PARAMS, TamsaParams, SessionKey } from './tamsa-params';
 import { newsBlock, resolveConflictsPdf, tradePnl, slCapPips } from './rules';
 import { Settings } from './rules';
-import { emaSeries } from './indicators';
+import { emaSeries, atr, sma, adx as computeAdx, bollinger } from './indicators';
 import { PIP, BASKET_IDS } from './types';
 import { DecisionEntry, formatDecisionLine, CANCEL_CAUSES, BLOCK_REASON_LABELS } from './constitution';
+import { MarketRegime, detectRegime } from './regime-detector';
+
+/** فلتر Regime — يعطل استراتيجيات غير مناسبة للسوق الحالي */
+function getBlockedStrategies(regime: MarketRegime): Set<string> {
+  switch (regime) {
+    case 'range_low_vol':
+      return new Set(['AA', 'W', 'X', 'Y', 'E']); // التrending تفشل في العرض
+    case 'range_high_vol':
+      return new Set(['AA', 'W', 'E']); // AA و E تفشل في التذبذب
+    case 'weak_bull':
+    case 'weak_bear':
+      return new Set(['AA', 'W', 'F']); // AA و W ضعيفة في الترند الضعيف
+    default:
+      return new Set(); // strong_bull, strong_bear, volatile_breakout: كل شيء مسموح
+  }
+}
 
 export interface BacktestResult {
   trades: Trade[];
@@ -704,9 +720,28 @@ export function runBacktest(
 
     // ---- إدخال الإشارات الجديدة المعروفة ----
     const newSetups: Setup[] = [];
+    
+    // كشف Regime كل 24 شمعة (يومياً) — يقلل الحمل الحسابي
+    if (!('regimeCheckCounter' in cache)) (cache as any).regimeCheckCounter = 0;
+    if ((cache as any).regimeCheckCounter++ % 24 === 0 && data.c1h.length > 200) {
+      // حساب Regime من الشموع الحالية (بدون تسلل مستقبلي)
+      const c = data.c1h;
+      const recentC = c.slice(-200);
+      (cache as any).currentRegime = detectRegime(recentC);
+      (cache as any).blockedByRegime = getBlockedStrategies((cache as any).currentRegime.regime);
+    }
+    const blockedByRegime: Set<string> = (cache as any).blockedByRegime ?? new Set();
+    
     while (sigPtr.i < signals.length && signals[sigPtr.i].knownAt <= t) {
       const s = signals[sigPtr.i++];
       if (warmup) continue; // فترة التسخين — بلا تنفيذ
+      
+      // فلتر Regime: تعطيل الاستراتيجيات غير المناسبة للسوق الحالي
+      if (blockedByRegime.has(s.strategy)) { 
+        sigByStrat[s.strategy] = (sigByStrat[s.strategy] ?? 0) + 1;
+        continue; // تجاهل الإشارة
+      }
+      
       signalsCount++;
       sigByStrat[s.strategy] = (sigByStrat[s.strategy] ?? 0) + 1;
       const st = signalToSetup(s, setupId++, sess ?? 'asia');
