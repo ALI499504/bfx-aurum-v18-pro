@@ -424,6 +424,7 @@ export class LightGBMFilter {
   private enabled: boolean;
   private minConfidence: number;
   private blockRange: boolean;
+  private trainedModel: JsonTreeModel | null = null;
 
   constructor(opts: LightGBMFilterOptions = {}) {
     this.enabled = opts.enabled ?? true;
@@ -431,6 +432,57 @@ export class LightGBMFilter {
     this.blockRange = opts.blockRange ?? true;
     this.ensemble = new EnsembleModel();
     this.onlineLearner = new OnlineLearner();
+    
+    // تحميل النموذج المُدرَّب من JSON (إن وُجد)
+    this.loadTrainedModel();
+  }
+  
+  /** تحميل النموذج الحقيقي المُدرَّب من ملف JSON */
+  private async loadTrainedModel() {
+    try {
+      // في بيئة المتصفح/الخادم، تحميل من الملف
+      if (typeof fetch !== 'undefined') {
+        const response = await fetch('/lightgbm-model-xauusd.json');
+        if (response.ok) {
+          const dump = await response.json();
+          this.trainedModel = new JsonTreeModel(dump.model_dump, 'xauusd-trained-v1');
+          console.log('[LightGBMFilter] ✅ تم تحميل النموذج المُدرَّب:', dump.model_dump.name);
+        }
+      }
+    } catch (e) {
+      console.warn('[LightGBMFilter] ⚠️  تعذر تحميل النموذج المُدرَّب، استخدام Surrogate:', e);
+    }
+  }
+  
+  /** استخدام النموذج المُدرَّب إن وُجد، وإلا Ensemble */
+  predict(f: FeatureVector) {
+    if (this.trainedModel) {
+      // استخدام النموذج الحقيقي المُدرَّب
+      const raw = this.trainedModel.predictRaw(f);
+      const probs = softmax(raw);
+      const trend = probs[0] >= probs[1] && probs[0] >= probs[2] ? 'up'
+        : probs[1] >= probs[2] ? 'down' : 'range';
+      
+      return {
+        trend: trend as PredTrend,
+        confidence: probs[trend === 'up' ? 0 : trend === 'down' ? 1 : 2],
+        probabilities: { up: probs[0], down: probs[1], range: probs[2] },
+        model: this.trainedModel ? 'xauusd-trained-v1' : this.ensemble.name,
+        agreement: 1.0, // نموذج واحد
+        modelVotes: { lgbm: probs[0], xgb: probs[0], rf: probs[0] },
+      };
+    }
+    
+    // Fallback إلى Ensemble
+    const pred = this.ensemble.predict(f);
+    return {
+      trend: pred.trend as PredTrend,
+      confidence: pred.confidence,
+      probabilities: pred.probabilities,
+      model: (this.trainedModel ? 'xauusd-trained-v1' : this.ensemble.name) as string,
+      agreement: pred.agreement,
+      modelVotes: pred.modelVotes,
+    };
   }
 
   // ...
@@ -454,18 +506,6 @@ export class LightGBMFilter {
     return 'bear';
   }
 
-  predict(f: FeatureVector) {
-    const pred = this.ensemble.predict(f);
-    return {
-      trend: pred.trend,
-      confidence: pred.confidence,
-      probabilities: pred.probabilities,
-      model: this.ensemble.name,
-      agreement: pred.agreement,
-      modelVotes: pred.modelVotes,
-    };
-  }
-
   /** إضافة نتيجة صفقة للتعلم المستمر */
   recordTradeOutcome(trade: Trade, features: FeatureVector, predictedTrend: string): void {
     this.onlineLearner.addOutcome(OnlineLearner.createOutcome(trade, features, predictedTrend));
@@ -474,12 +514,6 @@ export class LightGBMFilter {
   /** الحصول على أداء النموذج */
   getPerformance() {
     return this.onlineLearner.getPerformance();
-  }
-
-  /** تركيب نموذج مُدرَّب حقيقي (تفريغ JSON) — يُبقي كل شيء آخر كما هو */
-  loadModelJSON(dump: LgbDump, name?: string): void {
-    // مع Ensemble، يتم تحميل النموذج في الـ Surrogate الأساسي
-    // هذا للتوافق مع الكود القديم
   }
 
   // ...

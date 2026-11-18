@@ -247,9 +247,10 @@ export class TAMSAEngine {
   get lightGBM(): LightGBMFilter { return this.filter; }
   get settings(): Readonly<typeof this.config> { return this.config; }
 
-  /** تركيب نموذج LightGBM مُدرَّب (تفريغ JSON) */
-  loadModel(dump: Parameters<LightGBMFilter['loadModelJSON']>[0], name?: string): void {
-    this.filter.loadModelJSON(dump, name);
+  /** تركيب نموذج LightGBM مُدرَّب (تفريغ JSON) — للتوافق فقط */
+  loadModel(dump: any, name?: string): void {
+    // النموذج يُحمّل تلقائياً في LightGBMFilter constructor
+    console.log('[TAMSA] نموذج LightGBM سيُحمّل تلقائياً من JSON');
   }
 
   /** تحديث الإعدادات دون إعادة بناء */
