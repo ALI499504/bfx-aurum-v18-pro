@@ -16,7 +16,9 @@
     "test:tamsa:engine": "bun run tests/tamsa-engine.test.ts",
     "test:tamsa:model": "bun run tests/tamsa-model.test.ts",
     "test:tamsa:integration": "bun run tests/tamsa-integration.test.ts",
-    "test:tamsa:structure": "bun run tests/tamsa-structure.test.ts"
+    "test:tamsa:structure": "bun run tests/tamsa-structure.test.ts",
+    "train:export": "bun run scripts/export-training-data.ts",
+    "train:model": "python3 scripts/train-model-mt5.py"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -82,6 +82,16 @@ export interface LightGBMPrediction {
   confidence: number;                                   // 0..1
   probabilities: { up: number; down: number; range: number };
   model: string;                                        // اسم النموذج المستخدم (شفافية)
+  /**
+   * احتمال تقلب عالٍ خلال الأفق (0..1) — يُملأ فقط إن كان النموذج المحمَّل
+   * نموذج تقلب (purpose = volatility_filter). يُستخدم كفلتر مخاطر:
+   * تقلب عالٍ = تصغير المخاطرة أو الامتناع، لا اتجاه تداول.
+   */
+  volatilityProbability?: number;
+  /** توافق النماذج (0..1) — من Ensemble */
+  agreement?: number;
+  /** أصوات النماذج الفرعية — من Ensemble */
+  modelVotes?: { lgbm: number; xgb: number; rf: number };
 }
 
 export interface LightGBMDecision {
@@ -141,6 +151,20 @@ export interface FeatureInput {
   trend4h?: Dir;
   trend1d?: Dir;
   real1h?: RealPivot[];
+  /**
+   * مؤشرات محسوبة مسبقاً على كامل السلسلة — للأداء فقط عند توليد مجموعة
+   * تدريب كبيرة. تُستعمل كما هي بدل إعادة الحساب لكل شمعة.
+   * يجب أن تكون محسوبة بنفس دوال indicators.ts على نفس السلسلة،
+   * وإلا اختلف التدريب عن الاستدلال. الاستدلال الحيّ لا يمررها أبداً.
+   */
+  precomputed?: {
+    e20s: number[]; e50s: number[]; e200s: number[];
+    atr14: number[]; atrSma50: number[]; volSma20: number[];
+    rsi: number[];
+    macd: { line: number[]; sig: number[]; hist: number[] };
+    bb: { upper: number[]; lower: number[] };
+    adx: number[]; stoch: number[]; cci: number[]; viability: number[];
+  };
 }
 
 /**
@@ -157,19 +181,20 @@ export function computeFeatures(inp: FeatureInput): FeatureVector {
 
   const idx = Math.max(0, Math.min(inp.idx ?? c.length - 1, c.length - 1));
   const closes = c.map(x => x.c);
-  const e20s = emaSeries(c, 20);
-  const e50s = emaSeries(c, 50);
-  const e200s = emaSeries(c, 200);
-  const atr14 = atr(c, 14);
-  const atrSma50 = sma(atr14.map(v => (Number.isFinite(v) ? v : 0)), 50);
-  const volSma20 = sma(c.map(x => x.v), 20);
-  const rsi = rsiSeries(closes, 14);
-  const macd = computeMacd(closes, 12, 26, 9);
-  const bb = bollinger(closes, 20, 2);
-  const adx = computeAdx(c, 14);
-  const stoch = stochK(c, 14);
-  const cciVal = computeCci(c, 20);
-  const viability = viabilityRatio(closes, 20);
+  const pc = inp.precomputed;
+  const e20s = pc?.e20s ?? emaSeries(c, 20);
+  const e50s = pc?.e50s ?? emaSeries(c, 50);
+  const e200s = pc?.e200s ?? emaSeries(c, 200);
+  const atr14 = pc?.atr14 ?? atr(c, 14);
+  const atrSma50 = pc?.atrSma50 ?? sma(atr14.map(v => (Number.isFinite(v) ? v : 0)), 50);
+  const volSma20 = pc?.volSma20 ?? sma(c.map(x => x.v), 20);
+  const rsi = pc?.rsi ?? rsiSeries(closes, 14);
+  const macd = pc?.macd ?? computeMacd(closes, 12, 26, 9);
+  const bb = pc?.bb ?? bollinger(closes, 20, 2);
+  const adx = pc?.adx ?? computeAdx(c, 14);
+  const stoch = pc?.stoch ?? stochK(c, 14);
+  const cciVal = pc?.cci ?? computeCci(c, 20);
+  const viability = pc?.viability ?? viabilityRatio(closes, 20);
 
   const bar = c[idx];
   const a = atr14[idx];
@@ -353,6 +378,15 @@ export interface LgbDump {
   tree_info?: { tree_index?: number; tree_structure: LgbTreeNode }[];
 }
 
+/** شكل ملف النموذج كما يُخزَّن في public/lightgbm-model-xauusd.json */
+export interface LgbModelFile {
+  model_dump: LgbDump;
+  version?: string;
+  purpose?: string;
+  auc_holdout?: number;
+  honest_notes?: string[];
+}
+
 /**
  * غلاف لنموذج LightGBM مُدرَّب فعلياً (تفريغ JSON القياسي من Booster.dump_model()).
  * يدعم التصنيف الثنائي (num_class = 1) والمتعدد (num_class = 3).
@@ -361,12 +395,15 @@ export class JsonTreeModel implements LightGBMModel {
   readonly name: string;
   private trees: LgbTreeNode[];
   private numClass: number;
+  /** نوع مهمة النموذج — يحدد كيف تُقرأ الدرجات الخام */
+  readonly task: 'direction' | 'volatility';
 
-  constructor(dump: LgbDump, name = 'lightgbm-json') {
+  constructor(dump: LgbDump, name = 'lightgbm-json', task: 'direction' | 'volatility' = 'direction') {
     const info = dump.tree_info ?? [];
     if (!info.length) throw new Error('LightGBM dump بلا أشجار (tree_info فارغ)');
     this.trees = info.map(t => t.tree_structure);
     this.numClass = dump.num_class ?? 1;
+    this.task = task;
     this.name = name;
   }
 
@@ -394,9 +431,14 @@ export class JsonTreeModel implements LightGBMModel {
       this.trees.forEach((t, i) => { s[i % 3] += this.leafFor(t, f); });
       return s;
     }
-    // ثنائي: الدرجة الخام = لوغاريتم الأرجحية للصعود؛ الهبوط هو المرآة
     let s = 0;
     for (const t of this.trees) s += this.leafFor(t, f);
+    if (this.task === 'volatility') {
+      // نموذج تقلب: الدرجة الخام = لوغاريتم أرجحية "تقلب عالٍ".
+      // لا تُفسَّر كاتجاه — نضعها في الخانة الثالثة كي تبقى منفصلة عن up/down.
+      return [0, 0, s];
+    }
+    // ثنائي اتجاهي: الدرجة الخام = لوغاريتم الأرجحية للصعود؛ الهبوط هو المرآة
     return [s, -s, 0];
   }
 }
@@ -432,56 +474,106 @@ export class LightGBMFilter {
     this.blockRange = opts.blockRange ?? true;
     this.ensemble = new EnsembleModel();
     this.onlineLearner = new OnlineLearner();
-    
-    // تحميل النموذج المُدرَّب من JSON (إن وُجد)
-    this.loadTrainedModel();
+
+    // النموذج يُحمَّل متزامناً في الخادم (قراءة ملف) — كي يكون جاهزاً
+    // من أول تنبؤ. في المتصفح يُحمَّل غير متزامن بعد الإقلاع.
+    if (!this.loadTrainedModelSync()) {
+      void this.loadTrainedModelAsync();
+    }
   }
-  
-  /** تحميل النموذج الحقيقي المُدرَّب من ملف JSON */
-  private async loadTrainedModel() {
+
+  /**
+   * تحميل متزامن على الخادم: قراءة الملف من نظام الملفات مباشرة.
+   * الطريقة السابقة كانت fetch('/...') وهو مسار نسبي لا يعمل في Node،
+   * فكان التحميل يفشل صامتاً ويعمل البوت على Surrogate دون علم أحد.
+   */
+  private loadTrainedModelSync(): boolean {
+    if (typeof window !== 'undefined') return false; // المتصفح: لا fs
     try {
-      // في بيئة المتصفح/الخادم، تحميل من الملف
-      if (typeof fetch !== 'undefined') {
-        const response = await fetch('/lightgbm-model-xauusd.json');
-        if (response.ok) {
-          const dump = await response.json();
-          this.trainedModel = new JsonTreeModel(dump.model_dump, 'xauusd-trained-v1');
-          console.log('[LightGBMFilter] ✅ تم تحميل النموذج المُدرَّب:', dump.model_dump.name);
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const fs = require('node:fs') as typeof import('node:fs');
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const path = require('node:path') as typeof import('node:path');
+      const candidates = [
+        path.join(process.cwd(), 'public', 'lightgbm-model-xauusd.json'),
+        path.join(process.cwd(), 'src', 'lib', 'engine', 'lightgbm-model-xauusd.json'),
+      ];
+      for (const file of candidates) {
+        if (!fs.existsSync(file)) continue;
+        const dump = JSON.parse(fs.readFileSync(file, 'utf8')) as LgbModelFile;
+        const task = dump.purpose === 'volatility_filter' ? 'volatility' : 'direction';
+        this.trainedModel = new JsonTreeModel(dump.model_dump, 'xauusd-trained-v2', task);
+        if (dump.honest_notes) {
+          console.log('[LightGBMFilter] ✅ النموذج محمَّل:', dump.version,
+            '| الغرض:', dump.purpose, '| AUC:', dump.auc_holdout);
+        } else {
+          console.log('[LightGBMFilter] ✅ النموذج محمَّل من', file);
         }
+        return true;
       }
+      console.warn('[LightGBMFilter] ملف النموذج غير موجود — Surrogate');
+      return false;
     } catch (e) {
-      console.warn('[LightGBMFilter] ⚠️  تعذر تحميل النموذج المُدرَّب، استخدام Surrogate:', e);
+      console.warn('[LightGBMFilter] تعذر قراءة النموذج — Surrogate:', e);
+      return false;
     }
   }
-  
-  /** استخدام النموذج المُدرَّب إن وُجد، وإلا Ensemble */
-  predict(f: FeatureVector) {
-    if (this.trainedModel) {
-      // استخدام النموذج الحقيقي المُدرَّب
-      const raw = this.trainedModel.predictRaw(f);
-      const probs = softmax(raw);
-      const trend = probs[0] >= probs[1] && probs[0] >= probs[2] ? 'up'
-        : probs[1] >= probs[2] ? 'down' : 'range';
-      
-      return {
-        trend: trend as PredTrend,
-        confidence: probs[trend === 'up' ? 0 : trend === 'down' ? 1 : 2],
-        probabilities: { up: probs[0], down: probs[1], range: probs[2] },
-        model: this.trainedModel ? 'xauusd-trained-v1' : this.ensemble.name,
-        agreement: 1.0, // نموذج واحد
-        modelVotes: { lgbm: probs[0], xgb: probs[0], rf: probs[0] },
-      };
+
+  /** تحميل في المتصفح فقط (مسار عام يخدمه Next من public/) */
+  private async loadTrainedModelAsync() {
+    if (typeof window === 'undefined') return;
+    try {
+      const response = await fetch('/lightgbm-model-xauusd.json');
+      if (!response.ok) return;
+      const dump = (await response.json()) as LgbModelFile;
+      const task = dump.purpose === 'volatility_filter' ? 'volatility' : 'direction';
+      this.trainedModel = new JsonTreeModel(dump.model_dump, 'xauusd-trained-v2', task);
+      console.log('[LightGBMFilter] ✅ النموذج محمَّل في المتصفح:', dump.version);
+    } catch (e) {
+      console.warn('[LightGBMFilter] تعذر تحميل النموذج في المتصفح:', e);
     }
-    
-    // Fallback إلى Ensemble
-    const pred = this.ensemble.predict(f);
+  }
+
+  /** هل النموذج المُدرَّب محمَّل فعلاً؟ (للتشخيص والاختبار) */
+  get isTrainedModelLoaded(): boolean { return this.trainedModel !== null; }
+  
+  /**
+   * التنبؤ. إن كان النموذج المحمَّل نموذج تقلب (volatility_filter) فلا نستخرج
+   * منه اتجاهاً — هذا خارج قدرته المثبتة (AUC الاتجاه ~0.51 = صدفة). نُبقي
+   * الاتجاه على Ensemble ونُضيف احتمال التقلب كحقل مستقل يستهلكه فلتر المخاطر.
+   */
+  predict(f: FeatureVector): LightGBMPrediction {
+    const dirPred = this.ensemble.predict(f);
+    const base: LightGBMPrediction = {
+      trend: dirPred.trend as PredTrend,
+      confidence: dirPred.confidence,
+      probabilities: dirPred.probabilities,
+      model: this.ensemble.name,
+      agreement: dirPred.agreement,
+      modelVotes: dirPred.modelVotes,
+    };
+
+    if (!this.trainedModel) return base;
+
+    if (this.trainedModel.task === 'volatility') {
+      // الدرجة الخام في الخانة الثالثة (انظر predictRaw)
+      const raw = this.trainedModel.predictRaw(f)[2];
+      const p = 1 / (1 + Math.exp(-raw)); // سيجمويد لاحتمال واحد
+      return { ...base, volatilityProbability: p, model: `${base.model}+vol` };
+    }
+
+    // نموذج اتجاهي حقيقي: يستبدل Ensemble بالكامل
+    const raw = this.trainedModel.predictRaw(f);
+    const probs = softmax(raw);
+    const trend = probs[0] >= probs[1] && probs[0] >= probs[2] ? 'up'
+      : probs[1] >= probs[2] ? 'down' : 'range';
     return {
-      trend: pred.trend as PredTrend,
-      confidence: pred.confidence,
-      probabilities: pred.probabilities,
-      model: (this.trainedModel ? 'xauusd-trained-v1' : this.ensemble.name) as string,
-      agreement: pred.agreement,
-      modelVotes: pred.modelVotes,
+      trend: trend as PredTrend,
+      confidence: probs[trend === 'up' ? 0 : trend === 'down' ? 1 : 2],
+      probabilities: { up: probs[0], down: probs[1], range: probs[2] },
+      model: 'xauusd-trained-v2',
+      agreement: 1.0,
+      modelVotes: { lgbm: probs[0], xgb: probs[0], rf: probs[0] },
     };
   }
 
