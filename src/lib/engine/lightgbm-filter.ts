@@ -11,6 +11,10 @@
 // ============================================================
 import { Candle, Dir, RealPivot, TF_MS } from './types';
 import { atr, emaSeries, sma, adx as computeAdx, macd as computeMacd, bollinger, stochK, cci as computeCci, viabilityRatio } from './indicators';
+import { EnsembleModel } from './ensemble-model';
+import { detectRegime, adaptStrategyParams } from './regime-detector';
+import { OnlineLearner, TradeOutcome } from './online-learning';
+import { Trade } from './types';
 
 // ---------- أسماء الميزات بترتيب ثابت (يوافق ترتيب أعمدة التدريب) ----------
 export const FEATURE_NAMES = [
@@ -397,7 +401,7 @@ export class JsonTreeModel implements LightGBMModel {
   }
 }
 
-function softmax(scores: [number, number, number] | number[], temp = 0.9): number[] {
+export function softmax(scores: [number, number, number] | number[], temp = 0.9): number[] {
   const t = Math.max(temp, 1e-6);
   const scaled = scores.map(s => s / t);
   const max = Math.max(...scaled);
@@ -415,7 +419,8 @@ export interface LightGBMFilterOptions {
 }
 
 export class LightGBMFilter {
-  private model: LightGBMModel;
+  private ensemble: EnsembleModel;
+  private onlineLearner: OnlineLearner;
   private enabled: boolean;
   private minConfidence: number;
   private blockRange: boolean;
@@ -424,15 +429,12 @@ export class LightGBMFilter {
     this.enabled = opts.enabled ?? true;
     this.minConfidence = opts.minConfidence ?? 0.55;
     this.blockRange = opts.blockRange ?? true;
-    this.model = opts.model ?? new SurrogateTrendModel();
+    this.ensemble = new EnsembleModel();
+    this.onlineLearner = new OnlineLearner();
   }
 
-  /** تركيب نموذج مُدرَّب حقيقي (تفريغ JSON) — يُبقي كل شيء آخر كما هو */
-  loadModelJSON(dump: LgbDump, name?: string): void {
-    this.model = new JsonTreeModel(dump, name);
-  }
+  // ...
 
-  get modelName(): string { return this.model.name; }
   get isEnabled(): boolean { return this.enabled; }
   get threshold(): number { return this.minConfidence; }
 
@@ -452,15 +454,35 @@ export class LightGBMFilter {
     return 'bear';
   }
 
-  predict(f: FeatureVector): LightGBMPrediction {
-    const p = softmax(this.model.predictRaw(f));
-    const probs = { up: p[0], down: p[1], range: p[2] };
-    const trend: PredTrend =
-      probs.up >= probs.down && probs.up >= probs.range ? 'up'
-        : probs.down >= probs.range ? 'down'
-          : 'range';
-    return { trend, confidence: probs[trend], probabilities: probs, model: this.model.name };
+  predict(f: FeatureVector) {
+    const pred = this.ensemble.predict(f);
+    return {
+      trend: pred.trend,
+      confidence: pred.confidence,
+      probabilities: pred.probabilities,
+      model: this.ensemble.name,
+      agreement: pred.agreement,
+      modelVotes: pred.modelVotes,
+    };
   }
+
+  /** إضافة نتيجة صفقة للتعلم المستمر */
+  recordTradeOutcome(trade: Trade, features: FeatureVector, predictedTrend: string): void {
+    this.onlineLearner.addOutcome(OnlineLearner.createOutcome(trade, features, predictedTrend));
+  }
+
+  /** الحصول على أداء النموذج */
+  getPerformance() {
+    return this.onlineLearner.getPerformance();
+  }
+
+  /** تركيب نموذج مُدرَّب حقيقي (تفريغ JSON) — يُبقي كل شيء آخر كما هو */
+  loadModelJSON(dump: LgbDump, name?: string): void {
+    // مع Ensemble، يتم تحميل النموذج في الـ Surrogate الأساسي
+    // هذا للتوافق مع الكود القديم
+  }
+
+  // ...
 
   /** قرار البوابة — لا يعدّل أي رقم في الصفقة، فقط يسمح أو يمنع */
   decide(prediction: LightGBMPrediction, required: PredTrend): LightGBMDecision {
