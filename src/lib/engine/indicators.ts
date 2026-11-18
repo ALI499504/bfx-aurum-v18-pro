@@ -125,3 +125,74 @@ export function isImpulsive(c: Candle, atrVal: number): boolean {
   const body = Math.abs(c.c - c.o);
   return range > 1.5 * atrVal && body > 0.55 * range;
 }
+
+/** MACD: fastEMA, slowEMA, signal line */
+export function macd(
+  closes: number[],
+  fast = 12,
+  slow = 26,
+  signal = 9,
+): { line: number[]; sig: number[]; hist: number[] } {
+  const f = ema(closes, fast);
+  const s = ema(closes, slow);
+  const diff = closes.map((_, i) => f[i] - s[i]);
+  const sig = ema(diff, signal);
+  return { line: diff, sig, hist: diff.map((d, i) => d - sig[i]) };
+}
+
+/** Bollinger Bands: middle ± k×stddev */
+export function bollinger(closes: number[], period = 20, k = 2) {
+  const mid = sma(closes, period);
+  const upper: number[] = [], lower: number[] = [];
+  for (let i = 0; i < closes.length; i++) {
+    if (i < period - 1) { upper.push(NaN); lower.push(NaN); continue; }
+    let ss = 0;
+    for (let j = i - period + 1; j <= i; j++) ss += (closes[j] - mid[i]) ** 2;
+    const sd = Math.sqrt(ss / period);
+    upper.push(mid[i] + k * sd);
+    lower.push(mid[i] - k * sd);
+  }
+  return { mid, upper, lower };
+}
+
+/** Stochastic %K */
+export function stochK(candles: Candle[], period = 14): number[] {
+  const out: number[] = new Array(candles.length).fill(NaN);
+  for (let i = period - 1; i < candles.length; i++) {
+    let lo = Infinity, hi = -Infinity;
+    for (let j = i - period + 1; j <= i; j++) {
+      if (candles[j].l < lo) lo = candles[j].l;
+      if (candles[j].h > hi) hi = candles[j].h;
+    }
+    const range = hi - lo || 1e-9;
+    out[i] = ((candles[i].c - lo) / range) * 100;
+  }
+  return out;
+}
+
+/** CCI (Commodity Channel Index) */
+export function cci(candles: Candle[], period = 20): number[] {
+  const tp = candles.map(c => (c.h + c.l + c.c) / 3);
+  const out: number[] = new Array(candles.length).fill(NaN);
+  for (let i = period - 1; i < candles.length; i++) {
+    const mean = sma(tp, period)[i];
+    if (!isFinite(mean)) continue;
+    let md = 0;
+    for (let j = i - period + 1; j <= i; j++) md += Math.abs(tp[j] - mean);
+    const mdAvg = md / period;
+    out[i] = mdAvg > 0 ? (tp[i] - mean) / (0.015 * mdAvg) : 0;
+  }
+  return out;
+}
+
+/** Viability Ratio — نسبة الاتجاه إلى التذبذب */
+export function viabilityRatio(closes: number[], period = 20): number[] {
+  const out: number[] = new Array(closes.length).fill(NaN);
+  for (let i = period; i < closes.length; i++) {
+    const drift = Math.abs(closes[i] - closes[i - period]);
+    let vol = 0;
+    for (let j = i - period + 1; j <= i; j++) vol += Math.abs(closes[j] - closes[j - 1]);
+    out[i] = vol > 0 ? drift / vol : 1;
+  }
+  return out;
+}

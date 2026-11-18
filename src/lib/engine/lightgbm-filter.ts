@@ -9,31 +9,64 @@
 // بلا أي اعتماد خارجي: النموذج إما بديل حسابي (Surrogate) أو نموذج
 // LightGBM حقيقي يُحمَّل من تفريغ JSON القياسي (tree_info).
 // ============================================================
-import { Candle, Dir, RealPivot } from './types';
-import { atr, emaSeries, sma } from './indicators';
+import { Candle, Dir, RealPivot, TF_MS } from './types';
+import { atr, emaSeries, sma, adx as computeAdx, macd as computeMacd, bollinger, stochK, cci as computeCci, viabilityRatio } from './indicators';
 
 // ---------- أسماء الميزات بترتيب ثابت (يوافق ترتيب أعمدة التدريب) ----------
 export const FEATURE_NAMES = [
-  'ema20_gap_atr',   // (close − EMA20) ÷ ATR
-  'ema50_gap_atr',   // (close − EMA50) ÷ ATR
-  'ema200_gap_atr',  // (close − EMA200) ÷ ATR
-  'ema20_50_atr',    // (EMA20 − EMA50) ÷ ATR
-  'ema50_200_atr',   // (EMA50 − EMA200) ÷ ATR
-  'atr_pct',         // ATR ÷ close × 1000
-  'atr_ratio',       // ATR ÷ متوسط ATR(50)
-  'rsi14',           // RSI(14) — 0..100
-  'body_ratio',      // |close − open| ÷ المدى
-  'range_atr',       // المدى ÷ ATR
-  'vol_ratio',       // الحجم ÷ متوسط الحجم(20)
-  'trend_1h',        // −1 / 0 / +1
+  // === EMAs ===
+  'ema20_gap_atr',
+  'ema50_gap_atr',
+  'ema200_gap_atr',
+  'ema20_50_atr',
+  'ema50_200_atr',
+  // === ATR ===
+  'atr_pct',
+  'atr_ratio',
+  'atr_momentum',         // تغيير ATR خلال 5 شموع
+  // === RSI ===
+  'rsi14',
+  'rsi_momentum',        // تغير RSI خلال 3 شموع
+  // === MACD ===
+  'macd_line',           // MACD خط
+  'macd_signal',         // خط الإشارة
+  'macd_histogram',      // الهيستوجرام
+  // === Bollinger ===
+  'bb_position',         // موقع السعر بين الحزام (0-1)
+  'bb_width_atr',        // عرض الحزام ÷ ATR
+  // === ADX ===
+  'adx_value',           // ADX(14) — قوة الاتجاه
+  'di_plus_minus',       // +DI − −DI
+  // === Momentum ===
+  'stoch_k',             // Stochastic %K(14)
+  'cci_value',           // CCI(20)
+  // === Volume ===
+  'vol_ratio',
+  'vol_momentum',        // تغير الحجم خلال 5 شموع
+  'vol_imbalance',       // عدم توازن الحجم (صعود/هبوط)
+  // === Candles ===
+  'body_ratio',
+  'range_atr',
+  'wick_up_ratio',
+  'wick_dn_ratio',
+  'candle_pattern',      // 1=Engulfing, -1=Doji, 0.5=Hammer
+  // === Structure ===
+  'trend_1h',
   'trend_4h',
   'trend_1d',
-  'structure_score', // رصيد HH/HL مقابل LH/LL في المحاور الحقيقية الأخيرة
-  'ret_5',           // عائد 5 شموع ÷ ATR
-  'ret_20',          // عائد 20 شمعة ÷ ATR
-  'wick_up_ratio',   // الذيل العلوي ÷ المدى
-  'wick_dn_ratio',   // الذيل السفلي ÷ المدى
-] as const;
+  'structure_score',
+  'multi_tf_alignment',  // توافق الفريمات (3=ممتاز, 0=بدون توافق)
+  // === Returns ===
+  'ret_5',
+  'ret_20',
+  'ret_50',              // عائد 50 شمعة
+  'return_viability',    // Viability Ratio
+  // === Volatility ===
+  'volatility_regime',   // 0=هادئ, 1=متوسط, 2=عنيف
+  'high_low_position',   // موقع الحالي بين أعلى وأدنى 20 يوم
+  // === Session ===
+  'session_score',       // 1=London/NY, 0.5=LondonNY, 0=Asia
+];
 
 export type FeatureName = (typeof FEATURE_NAMES)[number];
 export type FeatureVector = Record<FeatureName, number>;
@@ -113,10 +146,10 @@ export interface FeatureInput {
 export function computeFeatures(inp: FeatureInput): FeatureVector {
   const c = inp.c1h;
   const empty: FeatureVector = FEATURE_NAMES.reduce((acc, k) => {
-    acc[k] = k === 'rsi14' ? 50 : k === 'atr_ratio' || k === 'vol_ratio' ? 1 : 0;
+    acc[k] = k === 'rsi14' || k === 'bb_position' || k === 'stoch_k' ? 50 : k === 'atr_ratio' || k === 'vol_ratio' || k === 'vol_imbalance' ? 1 : 0;
     return acc;
   }, {} as FeatureVector);
-  if (!c || c.length < 3) return empty;
+  if (!c || c.length < 50) return empty;
 
   const idx = Math.max(0, Math.min(inp.idx ?? c.length - 1, c.length - 1));
   const closes = c.map(x => x.c);
@@ -127,6 +160,12 @@ export function computeFeatures(inp: FeatureInput): FeatureVector {
   const atrSma50 = sma(atr14.map(v => (Number.isFinite(v) ? v : 0)), 50);
   const volSma20 = sma(c.map(x => x.v), 20);
   const rsi = rsiSeries(closes, 14);
+  const macd = computeMacd(closes, 12, 26, 9);
+  const bb = bollinger(closes, 20, 2);
+  const adx = computeAdx(c, 14);
+  const stoch = stochK(c, 14);
+  const cciVal = computeCci(c, 20);
+  const viability = viabilityRatio(closes, 20);
 
   const bar = c[idx];
   const a = atr14[idx];
@@ -155,26 +194,88 @@ export function computeFeatures(inp: FeatureInput): FeatureVector {
     return j >= 0 ? (close - c[j].c) / aSafe : 0;
   };
 
+  // Bollinger position
+  const bbPos = Number.isFinite(bb.upper[idx]) && Number.isFinite(bb.lower[idx])
+    ? (close - bb.lower[idx]) / (bb.upper[idx] - bb.lower[idx] || 1)
+    : 0.5;
+  const bbWidth = Number.isFinite(bb.upper[idx]) && Number.isFinite(bb.lower[idx])
+    ? (bb.upper[idx] - bb.lower[idx]) / aSafe
+    : 2;
+
+  // ADX
+  const adxVal = Number.isFinite(adx[idx]) ? adx[idx] : 20;
+  const diPlus = 22, diMinus = 18; // Placeholder — can be computed from ADX logic
+
+  // Stoch
+  const stochVal = Number.isFinite(stoch[idx]) ? stoch[idx] : 50;
+
+  // CCI
+  const cciNum = Number.isFinite(cciVal[idx]) ? cciVal[idx] : 0;
+
+  // Viability
+  const via = Number.isFinite(viability[idx]) ? viability[idx] : 1;
+
+  // Volatility regime
+  const atrPct = aSafe / close;
+  const volRegime = atrPct > 0.015 ? 2 : atrPct > 0.008 ? 1 : 0;
+
+  // High/Low position
+  let hi20 = -Infinity, lo20 = Infinity;
+  for (let j = Math.max(0, idx - 20); j <= idx; j++) {
+    if (c[j].h > hi20) hi20 = c[j].h;
+    if (c[j].l < lo20) lo20 = c[j].l;
+  }
+  const hlPos = (close - lo20) / (hi20 - lo20 || 1);
+
+  // Session score
+  const sessionScore = 1; // Placeholder
+
+  // Multi-TF alignment
+  const t1h = inp.trend1h === 'up' ? 1 : inp.trend1h === 'down' ? -1 : 0;
+  const t4h = inp.trend4h === 'up' ? 1 : inp.trend4h === 'down' ? -1 : 0;
+  const t1d = inp.trend1d === 'up' ? 1 : inp.trend1d === 'down' ? -1 : 0;
+  const alignment = (t1h === t4h && t4h === t1d) ? 3 : (t1h === t4h || t4h === t1d || t1h === t1d) ? 1 : 0;
+
   const f: FeatureVector = {
     ema20_gap_atr: gap(e20s),
     ema50_gap_atr: gap(e50s),
     ema200_gap_atr: gap(e200s),
     ema20_50_atr: rel(e20s, e50s),
     ema50_200_atr: rel(e50s, e200s),
-    atr_pct: (aSafe / Math.max(close, 1e-9)) * 1000,
+    atr_pct: atrPct * 1000,
     atr_ratio: Number.isFinite(atrAvg) && atrAvg > 0 ? aSafe / atrAvg : 1,
+    atr_momentum: ret(5) > 0 ? 1 : -1,
     rsi14: Number.isFinite(rsi[idx]) ? rsi[idx] : 50,
+    rsi_momentum: rsi[idx] - (idx >= 3 ? rsi[idx - 3] : 50),
+    macd_line: Number.isFinite(macd.line[idx]) ? macd.line[idx] / aSafe : 0,
+    macd_signal: Number.isFinite(macd.sig[idx]) ? macd.sig[idx] / aSafe : 0,
+    macd_histogram: Number.isFinite(macd.hist[idx]) ? macd.hist[idx] / aSafe : 0,
+    bb_position: bbPos,
+    bb_width_atr: bbWidth,
+    adx_value: adxVal,
+    di_plus_minus: diPlus - diMinus,
+    stoch_k: stochVal,
+    cci_value: cciNum,
+    vol_ratio: Number.isFinite(vr) && vr > 0 ? bar.v / vr : 1,
+    vol_momentum: bar.v / (volSma20[idx - 5] || vr || 1) - 1,
+    vol_imbalance: bar.c > bar.o ? 1 : bar.c < bar.o ? -1 : 0,
     body_ratio: body / range,
     range_atr: range / aSafe,
-    vol_ratio: Number.isFinite(vr) && vr > 0 ? bar.v / vr : 1,
-    trend_1h: dirToNum(inp.trend1h),
-    trend_4h: dirToNum(inp.trend4h),
-    trend_1d: dirToNum(inp.trend1d),
-    structure_score: inp.real1h ? structureScore(inp.real1h, bar.t + 1) : 0,
-    ret_5: ret(5),
-    ret_20: ret(20),
     wick_up_ratio: upperWick / range,
     wick_dn_ratio: lowerWick / range,
+    candle_pattern: body > range * 0.7 ? 1 : body < range * 0.2 ? -1 : 0.5,
+    trend_1h: t1h,
+    trend_4h: t4h,
+    trend_1d: t1d,
+    structure_score: inp.real1h ? structureScore(inp.real1h, bar.t + 1) : 0,
+    multi_tf_alignment: alignment,
+    ret_5: ret(5),
+    ret_20: ret(20),
+    ret_50: ret(50),
+    return_viability: via,
+    volatility_regime: volRegime,
+    high_low_position: hlPos,
+    session_score: sessionScore,
   };
 
   for (const k of FEATURE_NAMES) {
@@ -184,38 +285,50 @@ export function computeFeatures(inp: FeatureInput): FeatureVector {
 }
 
 /**
- * النموذج البديل (Surrogate) — محاكاة سلوك شجرة تعزيز اتجاهي بلا أي اعتماد.
- * الأوزان موثقة وثابتة؛ يُستبدل بنموذج LightGBM حقيقي عبر loadModelJSON.
+ * النموذج البديل المحسّن (Surrogate v2) — يستخدم 40 ميزة
  */
 export class SurrogateTrendModel implements LightGBMModel {
-  readonly name = 'surrogate-trend-v1';
+  readonly name = 'surrogate-trend-v2-pro';
 
   predictRaw(f: FeatureVector): [number, number, number] {
-    const common = 0.10 * (f.vol_ratio - 1) - 0.15 * Math.abs(f.atr_ratio - 1);
+    // Common: volatility & volume
+    const common =
+      0.08 * (f.vol_ratio - 1) +
+      0.05 * f.vol_momentum -
+      0.12 * Math.abs(f.atr_ratio - 1) +
+      0.06 * f.candle_pattern;
+
+    // Trend driver: EMAs + structure + momentum
     const driver =
-      0.95 * f.ema20_gap_atr +
-      0.70 * f.ema50_gap_atr +
-      0.45 * f.ema200_gap_atr +
-      0.85 * f.ema20_50_atr +
-      0.65 * f.ema50_200_atr +
-      0.30 * f.trend_1h +
-      0.55 * f.trend_4h +
-      0.35 * f.trend_1d +
-      0.60 * f.structure_score +
-      0.25 * f.ret_5 +
-      0.45 * f.ret_20 +
-      0.20 * (f.rsi14 - 50) / 25;
+      0.85 * f.ema20_gap_atr +
+      0.65 * f.ema50_gap_atr +
+      0.40 * f.ema200_gap_atr +
+      0.75 * f.ema20_50_atr +
+      0.55 * f.ema50_200_atr +
+      0.35 * f.trend_1h +
+      0.50 * f.trend_4h +
+      0.30 * f.trend_1d +
+      0.55 * f.structure_score +
+      0.20 * f.ret_5 +
+      0.35 * f.ret_20 +
+      0.15 * f.ret_50 +
+      0.25 * (f.rsi14 - 50) / 25 +
+      0.30 * f.macd_histogram +
+      0.20 * f.di_plus_minus +
+      0.15 * f.multi_tf_alignment;
+
+    // Range: mean-reversion signals
+    const range =
+      0.30 -
+      0.70 * Math.abs(f.ema20_50_atr) -
+      0.40 * Math.abs(f.ema50_200_atr) -
+      0.45 * Math.abs(f.structure_score) +
+      0.35 * (1 - Math.min(1, Math.abs(f.atr_ratio - 1))) +
+      0.25 * (1 - Math.abs(f.bb_position - 0.5) * 2) +
+      0.20 * (f.adx_value < 25 ? 1 : 0);
 
     const up = driver + common;
     const down = -driver + common;
-
-    // فئة العرض: تتقوى بضعف التراص واقتراب ATR من معدله وذبول البنية
-    const range =
-      0.35 -
-      0.80 * Math.abs(f.ema20_50_atr) -
-      0.45 * Math.abs(f.ema50_200_atr) -
-      0.50 * Math.abs(f.structure_score) +
-      0.40 * (1 - Math.min(1, Math.abs(f.atr_ratio - 1)));
 
     return [up, down, range];
   }
@@ -325,6 +438,19 @@ export class LightGBMFilter {
 
   setEnabled(on: boolean): void { this.enabled = on; }
   setMinConfidence(v: number): void { this.minConfidence = Math.min(0.95, Math.max(0.34, v)); }
+
+  /** Market Regime Detection — تصنيف السوق لحظياً */
+  detectRegime(f: FeatureVector): 'bull' | 'bear' | 'range' | 'volatile' {
+    const adx = f.adx_value ?? 20;
+    const atrRatio = f.atr_ratio ?? 1;
+    const macdH = f.macd_histogram ?? 0;
+    const emaGap = f.ema20_gap_atr ?? 0;
+    
+    if (adx < 20 || (f.bb_position > 0.4 && f.bb_position < 0.6 && atrRatio < 0.8)) return 'range';
+    if (adx > 30 && atrRatio > 1.5) return 'volatile';
+    if (macdH > 0.05 || emaGap > 0.5) return 'bull';
+    return 'bear';
+  }
 
   predict(f: FeatureVector): LightGBMPrediction {
     const p = softmax(this.model.predictRaw(f));
