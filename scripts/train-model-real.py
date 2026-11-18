@@ -50,16 +50,16 @@ def load_mt5_data():
     return data
 
 def generate_realistic_xauusd():
-    """توليد بيانات XAUUSD واقعية من 2021-2026"""
-    print("   📝 توليد بيانات XAUUSD واقعية...")
+    """توليد بيانات XAUUSD واقعية من 2022-2026 (5 سنوات = 1826 يوم)"""
+    print("   📝 توليد بيانات XAUUSD واقعية (2022-2026)...")
     np.random.seed(42)
     
-    # أسعار XAUUSD واقعية: من ~1700 إلى ~2800
-    n_days = 1500
-    base_price = 1750.0
+    # أسعار XAUUSD واقعية: من ~1800 إلى ~4000
+    n_days = 1826  # 5 سنوات كاملة (2022-2026)
+    base_price = 1800.0
     
     # توليد أسعار بـ drift و volatility واقعية
-    daily_returns = np.random.normal(0.0004, 0.012, n_days)
+    daily_returns = np.random.normal(0.0005, 0.010, n_days)
     prices = base_price * np.cumprod(1 + daily_returns)
     
     # إضافة volatility clustering (GARCH-like)
@@ -75,7 +75,8 @@ def generate_realistic_xauusd():
         h = max(o, c) * (1 + abs(np.random.normal(0, volatility[i])))
         l = min(o, c) * (1 - abs(np.random.normal(0, volatility[i])))
         v = np.random.uniform(500, 2000)
-        t = int(datetime(2021, 1, 1, tzinfo=None).timestamp() * 1000) + i * 86400000
+        # من 2022-01-01 إلى 2026-12-31
+        t = int(datetime(2022, 1, 1, tzinfo=None).timestamp() * 1000) + i * 86400000
         
         candles.append([t, o, h, l, c, v])
     
@@ -346,7 +347,7 @@ def main():
         print("❌ لا توجد بيانات يومية!")
         return
     
-    print(f"   ✅ {len(candles_1d)} شمعة يومية (2021-2026)")
+    print(f"   ✅ {len(candles_1d)} شمعة يومية (2022-2026)")
     
     # تحضير بيانات التدريب
     X = []
