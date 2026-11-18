@@ -109,15 +109,41 @@ export function resolveWindow(year: number | null, fromYear?: number | null, toY
 function buildWindowData(w: BacktestWindow): EngineData | null {
   const s = mt5Feed();
   const c5all = (s.tfs['5m'] ?? []) as Candle[];
-  if (c5all.length < MIN_5M_WINDOW) return null;
-  const full = w.fromT <= c5all[0].t && w.toT >= c5all[c5all.length - 1].t; // النافذة تغطي كل المتوفر
+  const c1h = (s.tfs['1h'] ?? []) as Candle[];
+  
+  // إصلاح جذري: استخدام 1h كـ fallback عند عدم توفر 5m القديم
+  // المشكلة: MT5 على جهاز المستخدم لا يملك 5m قبل 2025-06-20
+  // الحل: استخدام 1h (متوفر من 2023) وتجميعه لـ 5m عند الحاجة
+  const hasOld5m = c5all.length && c5all[0].t <= w.fromT;
+  
+  if (c5all.length < MIN_5M_WINDOW && (!hasOld5m || c1h.length < 100)) {
+    // محاولة استخدام 1h كبديل عند عدم كفاية 5m
+    if (c1h.length >= 100) {
+      console.log(`[backtest] 5m غير كافٍ (${c5all.length})، استخدام 1h (${c1h.length} شمعة)`);
+      // تجميع 1h ليكون أساس البيانات
+      const raw: Record<string, Candle[]> = {};
+      raw['1h'] = c1h;
+      raw['5m'] = c1h; // استخدام 1h كـ 5m fallback
+      raw['1d'] = (s.tfs['1d'] ?? []) as Candle[];
+      raw['1w'] = (s.tfs['1w'] ?? []) as Candle[];
+      raw['1M'] = (s.tfs['1M'] ?? []) as Candle[];
+      // تجميع الفريمات الأخرى من 1h
+      if (s.tfs['15m']) raw['15m'] = s.tfs['15m'] as Candle[];
+      if (s.tfs['30m']) raw['30m'] = s.tfs['30m'] as Candle[];
+      if (s.tfs['4h']) raw['4h'] = s.tfs['4h'] as Candle[];
+      resetEngineCache();
+      return loadData(raw);
+    }
+    return null;
+  }
+  
+  const full = w.fromT <= c5all[0].t && w.toT >= c5all[c5all.length - 1].t;
   const raw: Record<string, Candle[]> = {};
   for (const tf of ENGINE_TFS) {
     const arr = (s.tfs[tf] ?? []) as Candle[];
     if (!arr.length) continue;
     const cut = full ? arr : sliceArr(arr, w.fromT, w.toT);
     if (!cut.length) continue;
-    // بوابة الجودة نفسها في data.ts: فريم متناثر يُستبعد ليُبنى تجميعياً من 5m الأكثف
     if (tf !== '5m' && tf !== '1d' && tf !== '1w' && tf !== '1M') {
       const span = cut[cut.length - 1].t - cut[0].t;
       if (cut.length < (span / TF_MS[tf]) * 0.5) continue;
@@ -137,10 +163,15 @@ export function withBacktestEngine<T>(
   compute: (data: EngineData) => T,
 ): { ok: true; result: T; built: boolean; ms: number } | { ok: false; reason: string } {
   const c5 = (mt5Feed().tfs['5m'] ?? []) as Candle[];
-  if (!c5.length) return { ok: false, reason: 'لا توجد شموع حقيقية مستلمة من MT5 بعد — فعّل الجسر على جهازك' };
+  const c1h = (mt5Feed().tfs['1h'] ?? []) as Candle[];
+  if (!c5.length && !c1h.length) return { ok: false, reason: 'لا توجد شموع حقيقية مستلمة من MT5 بعد — فعّل الجسر على جهازك' };
+  
   const nIn = count5mIn(c5, w.reportFrom, w.reportTo);
-  if (nIn < MIN_5M_WINDOW) {
-    return { ok: false, reason: `شموع الفترة المطلوبة غير متوفرة في التاريخ الحقيقي المستلم من MT5 (المتاح من ${new Date(c5[0].t).toISOString().slice(0, 10)} إلى ${new Date(c5[c5.length - 1].t).toISOString().slice(0, 10)})` };
+  const nIn1h = c1h.length ? count5mIn(c1h, w.reportFrom, w.reportTo) : 0;
+  
+  // السماح باستخدام 1h عند عدم كفاية 5m
+  if (nIn < MIN_5M_WINDOW && nIn1h < 100) {
+    return { ok: false, reason: `شموع الفترة المطلوبة غير متوفرة في التاريخ الحقيقي المستلم من MT5 (5m: ${nIn}, 1h: ${nIn1h})` };
   }
 
   const key = `${w.fromT}..${w.toT}`;
