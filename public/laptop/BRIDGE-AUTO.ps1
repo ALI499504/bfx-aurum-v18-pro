@@ -115,25 +115,26 @@ if ($o.Trim().Length -gt 0) { Write-Host 'BFX-WARN: المكتبات لم تثب
 Remove-Item $chk -ErrorAction SilentlyContinue
 
 # ---------- [5/7] حلقة المراقبة ----------
+# مهم: ملف batch يجب أن يكون ASCII صرفاً — أي حرف غير لاتيني (مثل عربي)
+# يكسر تحليل cmd، وعلامة > داخل echo تُفسَّر كتحويل مخرجات وتفشل.
+# لذا: بلا chcp، بلا نص عربي، ومسارات مطلقة + مسار مطلق لسكربت بايثون.
 Write-Host '[5/7] إنشاء حلقة المراقبة (إعادة تشغيل تلقائية كل 15 ثانية)...'
 $wd = @"
 @echo off
-chcp 65001 >nul
 title BFX-BRIDGE $Url
-cd /d "%~dp0public"
+cd /d "$Pub"
 :loop
-rem تأكد أن منصة MT5 تعمل — إن كانت مغلقة شغّلها تلقائياً
 tasklist /fi "imagename eq terminal64.exe" 2>nul | find /i "terminal64.exe" >nul || (
-    if exist "C:\Program Files\MetaTrader 5\terminal64.exe" start "" "C:\Program Files\MetaTrader 5\terminal64.exe"
-    if exist "C:\Program Files (x86)\MetaTrader 5\terminal64.exe" start "" "C:\Program Files (x86)\MetaTrader 5\terminal64.exe"
+if exist "C:\Program Files\MetaTrader 5\terminal64.exe" start "" "C:\Program Files\MetaTrader 5\terminal64.exe"
+if exist "C:\Program Files (x86)\MetaTrader 5\terminal64.exe" start "" "C:\Program Files (x86)\MetaTrader 5\terminal64.exe"
 )
-echo [%date% %time%] bridge -> $Url
-python mt5-bridge.py --url "$Url"
+echo [%date% %time%] bridge to $Url
+python "$Bridge" --url "$Url"
 echo [%date% %time%] bridge stopped - auto restart in 15s (close this window to stop all)
 timeout /t 15 /nobreak >nul
 goto loop
 "@
-[IO.File]::WriteAllText($Loop, $wd)   # UTF-8 بلا BOM — ضروري لعمل batch سليم
+Set-Content -Path $Loop -Value $wd -Encoding ascii
 
 # ---------- [6/7] التشغيل التلقائي عند الإقلاع (Startup بلا مدير) ----------
 Write-Host '[6/7] التشغيل التلقائي عند إقلاع الويندوز + تعطيل السكون...'
