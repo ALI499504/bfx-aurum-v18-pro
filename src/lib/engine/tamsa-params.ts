@@ -619,7 +619,7 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     enabled: true,  // مفعلة: انجراف السيولة وإعادة الاستحواذ (SMC)
     main: caseCfg(true),
     pivotStrength: 3, lookback: 40, minSweepPips: 15,
-    slBufPips: 15, rr: 2.0, expHours: 2,
+    slBufPips: 12, rr: 2.5, expHours: 2,  // تحسين: وقف أضيق + عائد أعلى
   },
   BB: {
     enabled: true,  // مفعلة: اختراق افتتاح لندن
