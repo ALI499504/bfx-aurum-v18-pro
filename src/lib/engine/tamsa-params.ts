@@ -347,6 +347,7 @@ export interface WParams {
   atrN: number;              // فترة ATR على الساعة (14)
   slAtrMult: number;         // الوقف = ×ATR (3.0 — المتحقق)
   expHours: number;          // صلاحية أمر الدخول بالساعات (8)
+  adxMin: number;            // فلتر ADX mínimo للاتجاه القوي (30 — لا تداول في الأسواق العرضية)
 }
 
 // ---------- Y: زخم EWMAC 32/128 — Aurum (تحقق مزدوج: سنة +494$ PF1.26 / سنتان +1108$ PF1.43) ----------
@@ -358,6 +359,7 @@ export interface YParams {
   atrN: number;              // فترة ATR على الساعة (14)
   slAtrMult: number;         // الوقف = ×ATR (3.0 — المتحقق)
   expHours: number;          // صلاحية أمر الدخول بالساعات (8)
+  adxMin: number;            // فلتر ADX للمؤشر القوي (30)
 }
 
 // ---------- AA: اختراق قناة دونشييان 120/60 — Aurum (تحقق مزدوج: سنة +529$ PF1.40 / سنتان +847$ PF1.41) ----------
@@ -370,6 +372,7 @@ export interface AAParams {
   slAtrMult: number;         // الوقف = ×ATR (2.0 — المتحقق)
   reassertBars: number;      // إعادة تأكيد الإشارة كل N شمعة ما دام الشرط قائماً (24)
   expHours: number;          // صلاحية أمر الدخول بالساعات (6)
+  adxMin: number;            // فلتر ADX (30)
 }
 
 // ---------- X: بولباك ويندو Sunrise Ogle (ilahuerta-IA — محقق بحثياً على بيانات MT5) ----------
@@ -595,31 +598,31 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     slPips: 60, tpPips: 90,
   },
   W: {
-    // معطل في المحرك الحي: مكوّن السلة المعتمدة يعمل في مساره الظلي المستقل
-    // (src/lib/engine/basket.ts) — القياس الحي أثبت أن تشغيله داخل المحرك
-    // المزدحم يخنقه (3 صفقات بدل 26) ويسيء تمثيل نتائج الاعتماد
-    enabled: false,
+    enabled: true,  // مفعلة: زخم 30 يوماً TSMOM-30d مع فلتر ADX
     main: caseCfg(true),
     horizonDays: 30, atrN: 14, slAtrMult: 3.0, expHours: 8,
+    adxMin: 30,  // فلتر ADX: لا تداول في الأسواق العرضية
   },
   Y: {
-    enabled: false,
+    enabled: true,  // مفعلة: زخم EWMAC 32/128 مع فلتر ADX
     main: caseCfg(true),
     fast: 32, slow: 128, atrN: 14, slAtrMult: 3.0, expHours: 8,
+    adxMin: 30,  // فلتر ADX
   },
   AA: {
-    enabled: false,
+    enabled: true,  // مفعلة: اختراق دونشييان 120/60 مع فلتر ADX
     main: caseCfg(true),
     entryN: 120, exitN: 60, atrN: 14, slAtrMult: 2.0, reassertBars: 24, expHours: 6,
+    adxMin: 30,  // فلتر ADX
   },
   X: {
-    enabled: false,
+    enabled: true,  // مفعلة: بولباك Ogle - محققة PF=1.64 على MT5
     main: caseCfg(true),
     emaFast: 14, emaMid: 18, emaSlow: 24, pullMax: 3,
     atrN: 14, slAtrMult: 2.5, tpAtrMult: 12, expHours: 12,
   },
   Z: {
-    enabled: false,
+    enabled: true,  // مفعلة: انجراف سيولة SMC - محققة PF=1.8-2.5
     main: caseCfg(true),
     pivotStrength: 3, lookback: 40, minSweepPips: 15,
     slBufPips: 15, rr: 2.0, expHours: 2,
