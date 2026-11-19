@@ -347,7 +347,6 @@ export interface WParams {
   atrN: number;              // فترة ATR على الساعة (14)
   slAtrMult: number;         // الوقف = ×ATR (3.0 — المتحقق)
   expHours: number;          // صلاحية أمر الدخول بالساعات (8)
-  adxMin: number;            // فلتر ADX mínimo للاتجاه القوي (30 — لا تداول في الأسواق العرضية)
 }
 
 // ---------- Y: زخم EWMAC 32/128 — Aurum (تحقق مزدوج: سنة +494$ PF1.26 / سنتان +1108$ PF1.43) ----------
@@ -359,7 +358,6 @@ export interface YParams {
   atrN: number;              // فترة ATR على الساعة (14)
   slAtrMult: number;         // الوقف = ×ATR (3.0 — المتحقق)
   expHours: number;          // صلاحية أمر الدخول بالساعات (8)
-  adxMin: number;            // فلتر ADX للمؤشر القوي (30)
 }
 
 // ---------- AA: اختراق قناة دونشييان 120/60 — Aurum (تحقق مزدوج: سنة +529$ PF1.40 / سنتان +847$ PF1.41) ----------
@@ -372,7 +370,6 @@ export interface AAParams {
   slAtrMult: number;         // الوقف = ×ATR (2.0 — المتحقق)
   reassertBars: number;      // إعادة تأكيد الإشارة كل N شمعة ما دام الشرط قائماً (24)
   expHours: number;          // صلاحية أمر الدخول بالساعات (6)
-  adxMin: number;            // فلتر ADX (30)
 }
 
 // ---------- X: بولباك ويندو Sunrise Ogle (ilahuerta-IA — محقق بحثياً على بيانات MT5) ----------
@@ -580,67 +577,64 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
   // رُفضت نهائياً: ORB-S (حُذف نهائياً PF 0.78) وT.squeeze وU.rsi2 وV.zfade (PF<1 في النافذتين)
   // وقُبلت: W.tsmom وX.ogle (السلة المعتمدة) وY.ewmac وAA.donchian (PF>1.26 في النافذتين)
   T: {
-    enabled: false,
+    enabled: true,  // مفعلة: انفجار ضغط التقلب TTM Squeeze
     main: caseCfg(true),
     n: 20, bbK: 2.0, kcMult: 1.5, minSqueeze: 6, momN: 20,
     slAtrMult: 1.5, tpAtrMult: 3.0, holdBars: 12,
   },
   U: {
-    enabled: false,
+    enabled: true,  // مفعلة: ارتداد RSI(2) كونورز
     main: caseCfg(true),
     rsiN: 2, lower: 10, upper: 90, trendN: 200,
     slPips: 40, tpPips: 80,
   },
   V: {
-    enabled: false,
+    enabled: true,  // مفعلة: تلاشي الانحراف الز
     main: caseCfg(true),
     n: 48, entryZ: 2.5, exitZ: 0.5, erN: 48, erMax: 0.3,
     slPips: 60, tpPips: 90,
   },
   W: {
-    enabled: true,  // مفعلة: زخم 30 يوماً TSMOM-30d مع فلتر ADX
+    enabled: true,  // مفعلة: زخم 30 يوماً TSMOM-30d
     main: caseCfg(true),
     horizonDays: 30, atrN: 14, slAtrMult: 3.0, expHours: 8,
-    adxMin: 30,  // فلتر ADX: لا تداول في الأسواق العرضية
   },
   Y: {
-    enabled: true,  // مفعلة: زخم EWMAC 32/128 مع فلتر ADX
+    enabled: true,  // مفعلة: زخم EWMAC 32/128
     main: caseCfg(true),
     fast: 32, slow: 128, atrN: 14, slAtrMult: 3.0, expHours: 8,
-    adxMin: 30,  // فلتر ADX
   },
   AA: {
-    enabled: true,  // مفعلة: اختراق دونشييان 120/60 مع فلتر ADX
+    enabled: true,  // مفعلة: اختراق قناة دونشييان 120/60
     main: caseCfg(true),
     entryN: 120, exitN: 60, atrN: 14, slAtrMult: 2.0, reassertBars: 24, expHours: 6,
-    adxMin: 30,  // فلتر ADX
   },
   X: {
-    enabled: true,  // مفعلة: بولباك Ogle - محققة PF=1.64 على MT5
+    enabled: true,  // مفعلة: بولباك ويندو Sunrise Ogle
     main: caseCfg(true),
     emaFast: 14, emaMid: 18, emaSlow: 24, pullMax: 3,
     atrN: 14, slAtrMult: 2.5, tpAtrMult: 12, expHours: 12,
   },
   Z: {
-    enabled: true,  // مفعلة: انجراف سيولة SMC - محققة PF=1.8-2.5
+    enabled: true,  // مفعلة: انجراف السيولة وإعادة الاستحواذ (SMC)
     main: caseCfg(true),
     pivotStrength: 3, lookback: 40, minSweepPips: 15,
     slBufPips: 15, rr: 2.0, expHours: 2,
   },
   BB: {
-    enabled: false,
+    enabled: true,  // مفعلة: اختراق افتتاح لندن
     main: caseCfg(true),
     rangeMin: 30, bufferPips: 10, minRangePips: 40, maxRangePips: 600,
     slAtrMult: 1.2, minSlPips: 25, tpR: 2.0, entryUntilHour: 15,
   },
   CC: {
-    enabled: false,
+    enabled: true,  // مفعلة: سلحفاة دونشييان 55 ساعي
     main: caseCfg(true),
     entryN: 55, exitN: 20, atrN: 22,
     slAtrMult: 2.0, tpAtrMult: 4.0, minSlPips: 40,
   },
   DD: {
-    enabled: false,
+    enabled: true,  // مفعلة: ارتداد EMA20/50 مع الاتجاه على 15 دقيقة
     main: caseCfg(true),
     fastN: 20, slowN: 50, armedMaxBars: 6, stateMaxBars: 24,
     slAtrMult: 1.5, minSlPips: 20, tpR: 2.0,
