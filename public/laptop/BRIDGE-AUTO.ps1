@@ -1,4 +1,4 @@
-﻿# ============================================================
+﻿﻿# ============================================================
 #  BFX AURUM v24 — الإعداد التلقائي الشامل للجسر (أمر واحد)
 #  ------------------------------------------------------------
 #  الهدف الافتراضي: البوت المحلي على جهازك http://localhost:3000
@@ -87,7 +87,8 @@ if (-not $src) {
             Invoke-WebRequest $u -OutFile $Bridge -UseBasicParsing -TimeoutSec 120
             $head = (Get-Content $Bridge -TotalCount 3) -join ' '
             if ($head -match 'python|MetaTrader|import') { $dl = $true; Write-Host "    نُزّل من: $u"; break }
-        } catch {}
+            Remove-Item $Bridge -Force -ErrorAction SilentlyContinue   # صفحة تحويل/خطأ وليست السكربت — احذفها وجرّب التالي
+        } catch { Remove-Item $Bridge -Force -ErrorAction SilentlyContinue }
     }
     if (-not $dl) {
         Write-Host '    عبر حزمة ZIP من github.com (المصدر المضمون)...'
