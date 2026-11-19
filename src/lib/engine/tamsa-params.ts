@@ -461,7 +461,7 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     case1: caseCfg(true), case2: caseCfg(true),
     insideBars: 3, smallCandles: 3,
     minExtPips: 50, maxExtPips: 400,
-    entryPips: 0, slPips: 80, tpPips: 150, // خطة التحويل: دخول عند إعادة اختبار الخط — الوقف يبقى 80 بيب خلفه
+    entryPips: 0, slPips: 60, tpPips: 200, // خطة التحويل: دخول عند إعادة اختبار الخط — الوقف يبقى 80 بيب خلفه
   },
   B: {
     enabled: false,
@@ -487,7 +487,7 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     e1: caseCfg(true), e2: caseCfg(true), e3: caseCfg(true),
     minCandles: 3, imp1: 3, imp2: 2, proximityPct: 20,
     expansionMinPips: 200, capMaxPips: 500, firstMitigationOnly: true,
-    entryPips: 20, slPips: 50, tpPips: 150,
+    entryPips: 20, slPips: 35, tpPips: 200,
   },
   F: {
     enabled: true,
@@ -508,7 +508,7 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
     enabled: true,
     main: caseCfg(true),
     breakPips: 200, conflictPips: 100, conflictSlPips: 30,
-    entryPips: 30, slPips: 70, tpPips: 150,
+    entryPips: 30, slPips: 50, tpPips: 200,
   },
   I: {
     enabled: false,

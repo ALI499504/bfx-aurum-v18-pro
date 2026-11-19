@@ -26,7 +26,7 @@
     },
     "daily_loss_stop": {
       "enabled": true,
-      "value": 50
+      "value": 30
     },
     "daily_profit_stop": {
       "enabled": true,
@@ -191,8 +191,8 @@
       "minExtPips": 50,
       "maxExtPips": 400,
       "entryPips": 0,
-      "slPips": 80,
-      "tpPips": 150
+      "slPips": 60,
+      "tpPips": 200
     },
     "B": {
       "enabled": false,
@@ -355,8 +355,8 @@
       "capMaxPips": 500,
       "firstMitigationOnly": true,
       "entryPips": 20,
-      "slPips": 50,
-      "tpPips": 150
+      "slPips": 35,
+      "tpPips": 200
     },
     "F": {
       "enabled": true,
@@ -487,8 +487,8 @@
       "conflictPips": 100,
       "conflictSlPips": 30,
       "entryPips": 30,
-      "slPips": 70,
-      "tpPips": 150
+      "slPips": 50,
+      "tpPips": 200
     },
     "I": {
       "enabled": false,
@@ -657,8 +657,8 @@
         "brkSlPips": 40,
         "brkTpPips": 150
       },
-      "revSlPips": 40,
-      "revTpPips": 150,
+      "revSlPips": 30,
+      "revTpPips": 120,
       "brkSlPips": 40,
       "brkTpPips": 150
     },
@@ -1072,7 +1072,7 @@
       "pullMax": 3,
       "atrN": 14,
       "slAtrMult": 2.5,
-      "tpAtrMult": 12,
+      "tpAtrMult": 14,
       "expHours": 12
     },
     "BB": {
@@ -1098,7 +1098,7 @@
       "maxRangePips": 600,
       "slAtrMult": 1.2,
       "minSlPips": 25,
-      "tpR": 2.0,
+      "tpR": 2.5,
       "entryUntilHour": 15
     }
   },
