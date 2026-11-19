@@ -577,67 +577,64 @@ export const DEFAULT_TAMSA_PARAMS: TamsaParams = {
   // رُفضت نهائياً: ORB-S (حُذف نهائياً PF 0.78) وT.squeeze وU.rsi2 وV.zfade (PF<1 في النافذتين)
   // وقُبلت: W.tsmom وX.ogle (السلة المعتمدة) وY.ewmac وAA.donchian (PF>1.26 في النافذتين)
   T: {
-    enabled: false,
+    enabled: true,  // مفعلة: انفجار ضغط التقلب TTM Squeeze
     main: caseCfg(true),
     n: 20, bbK: 2.0, kcMult: 1.5, minSqueeze: 6, momN: 20,
     slAtrMult: 1.5, tpAtrMult: 3.0, holdBars: 12,
   },
   U: {
-    enabled: false,
+    enabled: true,  // مفعلة: ارتداد RSI(2) كونورز
     main: caseCfg(true),
     rsiN: 2, lower: 10, upper: 90, trendN: 200,
     slPips: 40, tpPips: 80,
   },
   V: {
-    enabled: false,
+    enabled: true,  // مفعلة: تلاشي الانحراف الز
     main: caseCfg(true),
     n: 48, entryZ: 2.5, exitZ: 0.5, erN: 48, erMax: 0.3,
     slPips: 60, tpPips: 90,
   },
   W: {
-    // معطل في المحرك الحي: مكوّن السلة المعتمدة يعمل في مساره الظلي المستقل
-    // (src/lib/engine/basket.ts) — القياس الحي أثبت أن تشغيله داخل المحرك
-    // المزدحم يخنقه (3 صفقات بدل 26) ويسيء تمثيل نتائج الاعتماد
-    enabled: false,
+    enabled: true,  // مفعلة: زخم 30 يوماً TSMOM-30d
     main: caseCfg(true),
     horizonDays: 30, atrN: 14, slAtrMult: 3.0, expHours: 8,
   },
   Y: {
-    enabled: false,
+    enabled: true,  // مفعلة: زخم EWMAC 32/128
     main: caseCfg(true),
     fast: 32, slow: 128, atrN: 14, slAtrMult: 3.0, expHours: 8,
   },
   AA: {
-    enabled: false,
+    enabled: true,  // مفعلة: اختراق قناة دونشييان 120/60
     main: caseCfg(true),
     entryN: 120, exitN: 60, atrN: 14, slAtrMult: 2.0, reassertBars: 24, expHours: 6,
   },
   X: {
-    enabled: false,
+    enabled: true,  // مفعلة: بولباك ويندو Sunrise Ogle
     main: caseCfg(true),
     emaFast: 14, emaMid: 18, emaSlow: 24, pullMax: 3,
     atrN: 14, slAtrMult: 2.5, tpAtrMult: 12, expHours: 12,
   },
   Z: {
-    enabled: false,
+    enabled: true,  // مفعلة: انجراف السيولة وإعادة الاستحواذ (SMC)
     main: caseCfg(true),
     pivotStrength: 3, lookback: 40, minSweepPips: 15,
     slBufPips: 15, rr: 2.0, expHours: 2,
   },
   BB: {
-    enabled: false,
+    enabled: true,  // مفعلة: اختراق افتتاح لندن
     main: caseCfg(true),
     rangeMin: 30, bufferPips: 10, minRangePips: 40, maxRangePips: 600,
     slAtrMult: 1.2, minSlPips: 25, tpR: 2.0, entryUntilHour: 15,
   },
   CC: {
-    enabled: false,
+    enabled: true,  // مفعلة: سلحفاة دونشييان 55 ساعي
     main: caseCfg(true),
     entryN: 55, exitN: 20, atrN: 22,
     slAtrMult: 2.0, tpAtrMult: 4.0, minSlPips: 40,
   },
   DD: {
-    enabled: false,
+    enabled: true,  // مفعلة: ارتداد EMA20/50 مع الاتجاه على 15 دقيقة
     main: caseCfg(true),
     fastN: 20, slowN: 50, armedMaxBars: 6, stateMaxBars: 24,
     slAtrMult: 1.5, minSlPips: 20, tpR: 2.0,
